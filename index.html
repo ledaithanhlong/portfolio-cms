@@ -177,7 +177,10 @@
     } else {
       return `
         <div class="upcoming-item">
-          <span>${p.title}${p.description ? " — " + p.description : ""}</span>
+          <div>
+            <div>${p.title}${p.description ? " — " + p.description : ""}</div>
+            ${links.length ? `<div class="cert-links" style="margin-top:4px;">${links.join("")}</div>` : ""}
+          </div>
           <span class="tag">${(p.stack || []).join(" · ")}</span>
         </div>`;
     }
