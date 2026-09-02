@@ -153,7 +153,7 @@
         <h2 style="margin-bottom:16px;">Dự án</h2>
         <div id="projects-list"></div>
         <div class="form-box">
-          <h3>Thêm dự án mới</h3>
+          <h3 id="pj-form-title">Thêm dự án mới</h3>
           <label>Tên dự án</label><input id="pj-new-title">
           <div class="two-col">
             <div><label>Thời gian (vd: 03/2025 – 06/2025)</label><input id="pj-new-dates"></div>
@@ -170,7 +170,11 @@
             <div><label>Link mã nguồn</label><input id="pj-new-repo"></div>
           </div>
           <label>Thứ tự hiển thị</label><input id="pj-new-order" type="number" value="0">
-          <button id="pj-new-save">Thêm dự án</button>
+          <div class="save-row">
+            <button id="pj-new-save">Thêm dự án</button>
+            <button class="secondary" id="pj-cancel-edit" style="display:none;">Hủy sửa</button>
+            <span class="save-msg" id="pj-msg"></span>
+          </div>
         </div>
       </div>
 
@@ -358,6 +362,7 @@
           <div><h3>${s.name}</h3><div class="meta">${tierLabel[s.tier]} · thứ tự ${s.sort_order}</div></div>
         </div>
         <div class="entry-actions">
+          <button class="secondary edit-sk" data-id="${s.id}">Sửa</button>
           <button class="danger del-sk" data-id="${s.id}">Xóa</button>
         </div>
       </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có mục nào.</p>";
@@ -365,6 +370,19 @@
     document.querySelectorAll('.del-sk').forEach(b => b.onclick = async () => {
       if (!confirm('Xóa kỹ năng này?')) return;
       await sb.from('skills').delete().eq('id', b.dataset.id);
+      loadSkills();
+    });
+    document.querySelectorAll('.edit-sk').forEach(b => b.onclick = async () => {
+      const row = data.find(x => x.id == b.dataset.id);
+      const name = prompt('Tên kỹ năng:', row.name);
+      if (name === null) return;
+      const tier = prompt('Tầng (gõ đúng một trong 3: solid / developing / exposed):', row.tier);
+      if (tier === null) return;
+      if (!['solid','developing','exposed'].includes(tier)){
+        alert('Tầng không hợp lệ, phải là solid, developing hoặc exposed.');
+        return;
+      }
+      await sb.from('skills').update({ name, tier }).eq('id', row.id);
       loadSkills();
     });
   }
@@ -379,14 +397,19 @@
   };
 
   // ---------- Projects ----------
+  let editingProjectId = null;
+  let currentProjectList = [];
+
   async function loadProjects(){
     const { data } = await sb.from('projects').select('*').order('sort_order');
+    currentProjectList = data;
     document.getElementById('projects-list').innerHTML = data.map(p => `
       <div class="entry-card" data-id="${p.id}">
         <div class="row">
           <div><h3>${p.title}</h3><div class="meta">${p.status === 'done' ? 'Đã xong' : 'Đang thực hiện'} · ${p.date_range || ''}</div></div>
         </div>
         <div class="entry-actions">
+          <button class="secondary edit-pj" data-id="${p.id}">Sửa</button>
           <button class="danger del-pj" data-id="${p.id}">Xóa</button>
         </div>
       </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có dự án nào.</p>";
@@ -396,7 +419,38 @@
       await sb.from('projects').delete().eq('id', b.dataset.id);
       loadProjects();
     });
+
+    document.querySelectorAll('.edit-pj').forEach(b => b.onclick = () => {
+      const row = currentProjectList.find(x => x.id == b.dataset.id);
+      editingProjectId = row.id;
+      document.getElementById('pj-form-title').textContent = 'Sửa dự án';
+      document.getElementById('pj-new-title').value = row.title || '';
+      document.getElementById('pj-new-dates').value = row.date_range || '';
+      document.getElementById('pj-new-status').value = row.status || 'done';
+      document.getElementById('pj-new-role').value = row.role_note || '';
+      document.getElementById('pj-new-desc').value = row.description || '';
+      document.getElementById('pj-new-bullets').value = (row.bullets || []).join('\n');
+      document.getElementById('pj-new-stack').value = (row.stack || []).join('\n');
+      document.getElementById('pj-new-demo').value = row.demo_url || '';
+      document.getElementById('pj-new-repo').value = row.repo_url || '';
+      document.getElementById('pj-new-order').value = row.sort_order || 0;
+      document.getElementById('pj-new-save').textContent = 'Cập nhật dự án';
+      document.getElementById('pj-cancel-edit').style.display = 'inline-block';
+      document.getElementById('tab-projects').scrollIntoView({ behavior: 'smooth' });
+    });
   }
+
+  function resetProjectForm(){
+    editingProjectId = null;
+    document.getElementById('pj-form-title').textContent = 'Thêm dự án mới';
+    ['title','dates','role','desc','bullets','stack','demo','repo'].forEach(f => document.getElementById('pj-new-' + f).value = '');
+    document.getElementById('pj-new-status').value = 'done';
+    document.getElementById('pj-new-order').value = 0;
+    document.getElementById('pj-new-save').textContent = 'Thêm dự án';
+    document.getElementById('pj-cancel-edit').style.display = 'none';
+  }
+  document.getElementById('pj-cancel-edit').onclick = resetProjectForm;
+
   document.getElementById('pj-new-save').onclick = async () => {
     const title = document.getElementById('pj-new-title').value.trim();
     if (!title) return alert('Điền tên dự án.');
@@ -413,9 +467,15 @@
       repo_url: document.getElementById('pj-new-repo').value || null,
       sort_order: parseInt(document.getElementById('pj-new-order').value) || 0,
     };
-    const { error } = await sb.from('projects').insert(payload);
+
+    let error;
+    if (editingProjectId){
+      ({ error } = await sb.from('projects').update(payload).eq('id', editingProjectId));
+    } else {
+      ({ error } = await sb.from('projects').insert(payload));
+    }
     if (error) return alert('Lỗi khi lưu: ' + error.message);
-    ['title','dates','role','desc','bullets','stack','demo','repo'].forEach(f => document.getElementById('pj-new-' + f).value = '');
+    resetProjectForm();
     loadProjects();
   };
 

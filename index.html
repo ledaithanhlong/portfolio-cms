@@ -24,8 +24,8 @@
   .hero-top{display:flex;align-items:center;gap:22px;margin-bottom:28px;}
   .monogram{flex:0 0 auto;width:64px;height:64px;border:1.5px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;font-size:22px;font-weight:600;overflow:hidden;}
   .monogram img{width:100%;height:100%;object-fit:cover;}
-  .cert-row{display:flex;gap:14px;align-items:flex-start;}
-  .cert-thumb{width:56px;height:56px;object-fit:cover;border:1px solid var(--line);border-radius:3px;flex:0 0 auto;}
+  .cert-row{display:flex;gap:16px;align-items:flex-start;}
+  .cert-thumb{width:140px;height:auto;aspect-ratio:4/3;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:3px;flex:0 0 auto;padding:4px;}
   .cert-links{font-size:12.5px;margin-top:4px;display:flex;gap:12px;}
   .hero h1{font-size:clamp(28px,4vw,38px);font-weight:600;}
   .hero .role{color:var(--ink-soft);font-size:16px;margin-top:4px;}
@@ -249,7 +249,11 @@
     document.getElementById('certificates').innerHTML = certs.map(c => `
       <div class="cert">
         <div class="cert-row">
-          ${c.image_url ? `<img class="cert-thumb" src="${c.image_url}" alt="${c.name}">` : ""}
+          ${c.image_url ? (
+            c.credential_url
+              ? `<a href="${c.credential_url}" target="_blank"><img class="cert-thumb" src="${c.image_url}" alt="${c.name}"></a>`
+              : `<img class="cert-thumb" src="${c.image_url}" alt="${c.name}">`
+          ) : ""}
           <div>
             <div class="cert-name">${c.name}</div>
             <div class="cert-issuer">${c.issuer_url ? `<a href="${c.issuer_url}" target="_blank">${c.issuer}</a>` : c.issuer}</div>
