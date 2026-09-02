@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lê Đại Thanh Long — Frontend Developer Intern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --paper:#F2EFE7; --paper-deep:#EAE5D8; --line:#D9D3C3;
+    --ink:#1B231F; --ink-soft:#5B6157; --accent:#1F7A5C;
+    --accent-soft:#E1EBE3; --card:#FBF9F4; --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:"Space Grotesk",sans-serif;color:var(--ink);margin:0;letter-spacing:-0.01em;}
+  a{color:var(--accent);}
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px;}
+  .hero{padding:72px 0 56px;border-bottom:1px solid var(--line);}
+  .hero-top{display:flex;align-items:center;gap:22px;margin-bottom:28px;}
+  .monogram{flex:0 0 auto;width:64px;height:64px;border:1.5px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;font-size:22px;font-weight:600;overflow:hidden;}
+  .monogram img{width:100%;height:100%;object-fit:cover;}
+  .cert-row{display:flex;gap:14px;align-items:flex-start;}
+  .cert-thumb{width:56px;height:56px;object-fit:cover;border:1px solid var(--line);border-radius:3px;flex:0 0 auto;}
+  .cert-links{font-size:12.5px;margin-top:4px;display:flex;gap:12px;}
+  .hero h1{font-size:clamp(28px,4vw,38px);font-weight:600;}
+  .hero .role{color:var(--ink-soft);font-size:16px;margin-top:4px;}
+  .hero p.lede{max-width:60ch;font-size:17px;margin:0 0 30px;}
+  .hero-links{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:14.5px;}
+  .hero-links a{text-decoration:none;border-bottom:1px solid transparent;padding-bottom:1px;}
+  .hero-links a:hover{border-bottom-color:var(--accent);}
+  section.block{display:grid;grid-template-columns:170px 1fr;gap:40px;padding:46px 0;border-bottom:1px solid var(--line);opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;}
+  section.block.visible{opacity:1;transform:none;}
+  .block-label{font-size:14px;color:var(--ink-soft);padding-top:2px;}
+  .block-content h2{font-size:22px;font-weight:600;margin-bottom:18px;}
+  .skillbars{margin-top:6px;}
+  .skillbar-row{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:12px;margin-bottom:9px;font-size:13.5px;}
+  .skillbar-track{height:6px;background:var(--paper-deep);border-radius:4px;overflow:hidden;}
+  .skillbar-fill{height:100%;background:var(--accent);width:0%;border-radius:4px;transition:width 1.1s cubic-bezier(.3,.8,.3,1);}
+  .skillbar-pct{color:var(--ink-soft);text-align:right;}
+  .project{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:22px 24px;margin-bottom:20px;}
+  .project-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;margin-bottom:6px;}
+  .project-head h3{font-size:18px;font-weight:600;}
+  .project-dates{font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+  .project-role{font-size:13.5px;color:var(--accent);margin-bottom:10px;}
+  .project p.desc{margin:0 0 12px;font-size:15px;}
+  .project ul{margin:0 0 14px;padding-left:18px;font-size:14.5px;}
+  .project ul li{margin-bottom:4px;}
+  .stack{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .stack span{font-size:12.5px;color:var(--ink-soft);background:var(--accent-soft);padding:3px 9px;border-radius:20px;}
+  .project-links{font-size:13.5px;display:flex;gap:16px;}
+  .project-links a{text-decoration:none;}
+  .project-links a:hover{text-decoration:underline;}
+  .tier{margin-bottom:22px;}
+  .tier:last-child{margin-bottom:0;}
+  .tier-title{font-size:13.5px;font-weight:600;margin-bottom:8px;}
+  .tier-note{font-size:13px;color:var(--ink-soft);margin-bottom:8px;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{font-size:13.5px;padding:5px 12px;border:1px solid var(--line);border-radius:20px;background:var(--card);}
+  .tier.solid .chip{border-color:var(--accent);}
+  .cert{padding:12px 0;border-bottom:1px dashed var(--line);}
+  .cert:last-child{border-bottom:none;}
+  .cert-name{font-weight:500;font-size:15px;}
+  .cert-issuer{font-size:13.5px;color:var(--ink-soft);}
+  .upcoming-item{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .upcoming-item:last-child{border-bottom:none;}
+  .upcoming-item span.tag{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+  .contact-list{font-size:15.5px;}
+  .contact-list div{margin-bottom:8px;}
+  footer{padding:36px 0 60px;font-size:13px;color:var(--ink-soft);}
+  .loading-note{padding:60px 28px;color:var(--ink-soft);font-size:14px;text-align:center;}
+  @media (max-width:640px){section.block{grid-template-columns:1fr;gap:10px;}.skillbar-row{grid-template-columns:96px 1fr 30px;}}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading-note">Đang tải dữ liệu...</div>
+<div id="app" class="wrap" style="display:none;">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="monogram" id="monogram">LL</div>
+      <div>
+        <h1 id="p-name"></h1>
+        <div class="role" id="p-role"></div>
+      </div>
+    </div>
+    <p class="lede" id="p-lede"></p>
+    <div class="skillbars" id="skillbars"></div>
+    <div class="hero-links" id="hero-links"></div>
+  </div>
+
+  <section class="block">
+    <div class="block-label">Dự án</div>
+    <div class="block-content">
+      <h2>Đã xây dựng</h2>
+      <div id="projects-done"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-label">Kỹ năng</div>
+    <div class="block-content">
+      <h2>Mức độ hiện tại</h2>
+      <div id="skills-tiers"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-label">Chứng chỉ</div>
+    <div class="block-content">
+      <h2>Đã hoàn thành</h2>
+      <div id="certificates"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-label">Đang thực hiện</div>
+    <div class="block-content">
+      <h2>Sắp cập nhật</h2>
+      <div id="projects-upcoming"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-label">Liên hệ</div>
+    <div class="block-content">
+      <h2>Kết nối với mình</h2>
+      <div class="contact-list" id="contact-list"></div>
+    </div>
+  </section>
+
+  <footer>Dữ liệu được cập nhật trực tiếp từ trang quản trị · Hồ Chí Minh City, Việt Nam</footer>
+</div>
+
+<script>
+  // ====== ĐIỀN THÔNG TIN SUPABASE CỦA BẠN VÀO ĐÂY ======
+  const SUPABASE_URL = "https://yfbowrxiyhgpailnadvz.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmYm93cnhpeWhncGFpbG5hZHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzU0NzUsImV4cCI6MjEwMzgxMTQ3NX0.0gzpL6aZQgg_AONmirQCMeHc_3T_40U_Ib2_jgNXrc0";
+  // ======================================================
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function tierTitle(tier){
+    return { solid: "Vững", developing: "Đang phát triển", exposed: "Đã tiếp xúc" }[tier] || tier;
+  }
+  function tierNote(tier){
+    return {
+      developing: "Đã dùng trong dự án thực tế, còn đang đào sâu thêm.",
+      exposed: "Từng dùng trong một dự án cụ thể, chưa đủ để nhận là thế mạnh."
+    }[tier] || "";
+  }
+
+  function renderProject(p, isDone){
+    const bullets = (p.bullets || []).map(b => `<li>${b}</li>`).join("");
+    const stack = (p.stack || []).map(s => `<span>${s}</span>`).join("");
+    const links = [];
+    if (p.demo_url) links.push(`<a href="${p.demo_url}" target="_blank">Xem demo</a>`);
+    if (p.repo_url) links.push(`<a href="${p.repo_url}" target="_blank">Mã nguồn</a>`);
+
+    if (isDone){
+      return `
+        <div class="project">
+          <div class="project-head">
+            <h3>${p.title}</h3>
+            <span class="project-dates">${p.date_range || ""}</span>
+          </div>
+          ${p.role_note ? `<div class="project-role">${p.role_note}</div>` : ""}
+          ${p.description ? `<p class="desc">${p.description}</p>` : ""}
+          ${bullets ? `<ul>${bullets}</ul>` : ""}
+          ${stack ? `<div class="stack">${stack}</div>` : ""}
+          ${links.length ? `<div class="project-links">${links.join("")}</div>` : ""}
+        </div>`;
+    } else {
+      return `
+        <div class="upcoming-item">
+          <span>${p.title}${p.description ? " — " + p.description : ""}</span>
+          <span class="tag">${(p.stack || []).join(" · ")}</span>
+        </div>`;
+    }
+  }
+
+  async function loadData(){
+    const [{ data: profile }, { data: skillBars }, { data: skills }, { data: projects }, { data: certs }] =
+      await Promise.all([
+        sb.from('profile').select('*').eq('id', 1).single(),
+        sb.from('skill_bars').select('*').order('sort_order'),
+        sb.from('skills').select('*').order('sort_order'),
+        sb.from('projects').select('*').order('sort_order'),
+        sb.from('certificates').select('*').order('sort_order'),
+      ]);
+
+    // Profile
+    document.getElementById('p-name').textContent = profile.name;
+    document.getElementById('p-role').textContent = profile.role;
+    document.getElementById('p-lede').textContent = profile.lede;
+    const monogramEl = document.getElementById('monogram');
+    if (profile.photo_url){
+      monogramEl.innerHTML = `<img src="${profile.photo_url}" alt="${profile.name}">`;
+    } else {
+      monogramEl.textContent =
+        profile.name.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('').toUpperCase();
+    }
+
+    const links = [];
+    links.push(`<a href="mailto:${profile.email}">${profile.email}</a>`);
+    if (profile.github_url) links.push(`<a href="${profile.github_url}" target="_blank">${profile.github_url.replace('https://','')}</a>`);
+    if (profile.linkedin_url) links.push(`<a href="${profile.linkedin_url}" target="_blank">LinkedIn</a>`);
+    if (profile.location) links.push(`<span>${profile.location}</span>`);
+    document.getElementById('hero-links').innerHTML = links.join("");
+
+    document.getElementById('contact-list').innerHTML = `
+      <div>Email — <a href="mailto:${profile.email}">${profile.email}</a></div>
+      ${profile.github_url ? `<div>GitHub — <a href="${profile.github_url}" target="_blank">${profile.github_url.replace('https://','')}</a></div>` : ""}
+      ${profile.linkedin_url ? `<div>LinkedIn — <a href="${profile.linkedin_url}" target="_blank">Thanh Long Lê Đại</a></div>` : ""}
+    `;
+
+    // Skill bars
+    document.getElementById('skillbars').innerHTML = skillBars.map(s => `
+      <div class="skillbar-row">
+        <span>${s.label}</span>
+        <div class="skillbar-track"><div class="skillbar-fill" data-pct="${s.pct}"></div></div>
+        <span class="skillbar-pct">${s.pct}%</span>
+      </div>`).join("");
+
+    // Skills tiers
+    const tierOrder = ['solid', 'developing', 'exposed'];
+    document.getElementById('skills-tiers').innerHTML = tierOrder.map(tier => {
+      const items = skills.filter(s => s.tier === tier);
+      if (!items.length) return "";
+      return `
+        <div class="tier ${tier === 'solid' ? 'solid' : ''}">
+          <div class="tier-title">${tierTitle(tier)}</div>
+          ${tierNote(tier) ? `<div class="tier-note">${tierNote(tier)}</div>` : ""}
+          <div class="chip-row">${items.map(i => `<span class="chip">${i.name}</span>`).join("")}</div>
+        </div>`;
+    }).join("");
+
+    // Projects
+    document.getElementById('projects-done').innerHTML =
+      projects.filter(p => p.status === 'done').map(p => renderProject(p, true)).join("");
+    document.getElementById('projects-upcoming').innerHTML =
+      projects.filter(p => p.status === 'upcoming').map(p => renderProject(p, false)).join("");
+
+    // Certificates
+    document.getElementById('certificates').innerHTML = certs.map(c => `
+      <div class="cert">
+        <div class="cert-row">
+          ${c.image_url ? `<img class="cert-thumb" src="${c.image_url}" alt="${c.name}">` : ""}
+          <div>
+            <div class="cert-name">${c.name}</div>
+            <div class="cert-issuer">${c.issuer_url ? `<a href="${c.issuer_url}" target="_blank">${c.issuer}</a>` : c.issuer}</div>
+            ${c.credential_url ? `<div class="cert-links"><a href="${c.credential_url}" target="_blank">Xem chứng chỉ</a></div>` : ""}
+          </div>
+        </div>
+      </div>`).join("");
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    // Animations
+    const blocks = document.querySelectorAll('section.block');
+    const bars = document.querySelectorAll('.skillbar-fill');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.15 });
+    blocks.forEach(b => observer.observe(b));
+    setTimeout(() => bars.forEach(b => { b.style.width = b.dataset.pct + '%'; }), 200);
+  }
+
+  loadData().catch(err => {
+    document.getElementById('loading').textContent =
+      'Không tải được dữ liệu. Kiểm tra lại SUPABASE_URL và SUPABASE_ANON_KEY trong code.';
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
