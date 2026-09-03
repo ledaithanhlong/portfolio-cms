@@ -72,6 +72,24 @@
   .upcoming-item span.tag{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
   .contact-list{font-size:15.5px;}
   .contact-list div{margin-bottom:8px;}
+
+  .feedback-form label{font-size:13px;color:var(--ink-soft);display:block;margin-bottom:4px;}
+  .feedback-form input,.feedback-form textarea{
+    width:100%;font-family:inherit;font-size:14.5px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);
+    margin-bottom:14px;
+  }
+  .feedback-form textarea{resize:vertical;min-height:110px;}
+  .feedback-form button{
+    font-family:inherit;font-size:14px;font-weight:500;
+    padding:10px 22px;border-radius:3px;border:1px solid var(--ink);
+    background:var(--ink);color:var(--paper);cursor:pointer;
+  }
+  .feedback-form button:hover{opacity:0.85;}
+  .feedback-form button:disabled{opacity:0.5;cursor:default;}
+  .feedback-msg{font-size:13.5px;margin-top:10px;min-height:18px;}
+  .feedback-msg.success{color:var(--accent);}
+  .feedback-msg.error{color:#B0402F;}
   footer{padding:36px 0 60px;font-size:13px;color:var(--ink-soft);}
   .loading-note{padding:60px 28px;color:var(--ink-soft);font-size:14px;text-align:center;}
   @media (max-width:640px){section.block{grid-template-columns:1fr;gap:10px;}.skillbar-row{grid-template-columns:96px 1fr 30px;}}
@@ -131,6 +149,26 @@
     <div class="block-content">
       <h2>Kết nối với mình</h2>
       <div class="contact-list" id="contact-list"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-label">Gửi lời nhắn</div>
+    <div class="block-content">
+      <h2>Nhắn gửi cho mình</h2>
+      <p style="font-size:14.5px;color:var(--ink-soft);margin-bottom:18px;max-width:55ch;">
+        Có góp ý về trang này, cơ hội việc làm, hay chỉ đơn giản muốn kết nối — để lại vài dòng, mình sẽ phản hồi lại qua email.
+      </p>
+      <form class="feedback-form" id="feedback-form">
+        <label>Tên của bạn (không bắt buộc)</label>
+        <input type="text" id="fb-name" name="name" placeholder="Tên bạn">
+        <label>Email để mình phản hồi lại</label>
+        <input type="email" id="fb-email" name="email" placeholder="email@congty.com">
+        <label>Nội dung</label>
+        <textarea id="fb-message" name="message" placeholder="Viết gì đó cho mình..." required></textarea>
+        <button type="submit" id="fb-submit">Gửi tin nhắn</button>
+        <div class="feedback-msg" id="fb-msg"></div>
+      </form>
     </div>
   </section>
 
@@ -277,6 +315,49 @@
     document.getElementById('loading').textContent =
       'Không tải được dữ liệu. Kiểm tra lại SUPABASE_URL và SUPABASE_ANON_KEY trong code.';
     console.error(err);
+  });
+
+  // ====== ĐIỀN ACCESS KEY WEB3FORMS CỦA BẠN VÀO ĐÂY ======
+  const WEB3FORMS_ACCESS_KEY = "bb13a687-36ad-49c6-a16e-275f34542245";
+  // ========================================================
+
+  document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('fb-submit');
+    const msgEl = document.getElementById('fb-msg');
+    btn.disabled = true;
+    btn.textContent = 'Đang gửi...';
+    msgEl.textContent = '';
+    msgEl.className = 'feedback-msg';
+
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: 'Có người vừa nhắn qua Portfolio của bạn',
+          name: document.getElementById('fb-name').value || 'Người xem portfolio',
+          email: document.getElementById('fb-email').value || 'khong-de-lai-email@example.com',
+          message: document.getElementById('fb-message').value,
+        }),
+      });
+      const data = await res.json();
+      if (data.success){
+        msgEl.textContent = 'Đã gửi thành công, cảm ơn bạn! Mình sẽ phản hồi sớm.';
+        msgEl.classList.add('success');
+        document.getElementById('feedback-form').reset();
+      } else {
+        throw new Error(data.message || 'Gửi thất bại');
+      }
+    } catch (err) {
+      msgEl.textContent = 'Có lỗi khi gửi, thử lại sau hoặc liên hệ trực tiếp qua email bên trên.';
+      msgEl.classList.add('error');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Gửi tin nhắn';
+    }
   });
 </script>
 
