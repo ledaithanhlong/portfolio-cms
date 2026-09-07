@@ -165,6 +165,9 @@
           <label>Mô tả</label><textarea id="pj-new-desc"></textarea>
           <label>Các gạch đầu dòng (mỗi dòng một ý)</label><textarea id="pj-new-bullets"></textarea>
           <label>Công nghệ dùng (mỗi dòng một mục)</label><textarea id="pj-new-stack"></textarea>
+          <label>Ảnh chụp màn hình dự án (tùy chọn — hiện như khung preview trên trang chủ)</label>
+          <input id="pj-new-image" type="file" accept="image/*">
+          <img id="pj-current-image" style="display:none;max-width:220px;border:1px solid var(--line);border-radius:3px;margin-bottom:10px;">
           <div class="two-col">
             <div><label>Link demo</label><input id="pj-new-demo"></div>
             <div><label>Link mã nguồn</label><input id="pj-new-repo"></div>
@@ -406,7 +409,8 @@
     document.getElementById('projects-list').innerHTML = data.map(p => `
       <div class="entry-card" data-id="${p.id}">
         <div class="row">
-          <div><h3>${p.title}</h3><div class="meta">${p.status === 'done' ? 'Đã xong' : 'Đang thực hiện'} · ${p.date_range || ''}</div></div>
+          ${p.preview_image_url ? `<img src="${p.preview_image_url}" alt="" style="width:64px;height:40px;object-fit:cover;border:1px solid var(--line);border-radius:3px;flex:0 0 auto;">` : ''}
+          <div style="flex:1;"><h3>${p.title}</h3><div class="meta">${p.status === 'done' ? 'Đã xong' : 'Đang thực hiện'} · ${p.date_range || ''}</div></div>
         </div>
         <div class="entry-actions">
           <button class="secondary edit-pj" data-id="${p.id}">Sửa</button>
@@ -416,6 +420,13 @@
 
     document.querySelectorAll('.del-pj').forEach(b => b.onclick = async () => {
       if (!confirm('Xóa dự án này?')) return;
+      const row = currentProjectList.find(x => x.id == b.dataset.id);
+      if (row?.preview_image_url){
+        try {
+          const path = row.preview_image_url.split('/projects/')[1];
+          if (path) await sb.storage.from('projects').remove([path]);
+        } catch(e) { console.warn('Không xóa được ảnh cũ trên storage', e); }
+      }
       await sb.from('projects').delete().eq('id', b.dataset.id);
       loadProjects();
     });
@@ -434,6 +445,10 @@
       document.getElementById('pj-new-demo').value = row.demo_url || '';
       document.getElementById('pj-new-repo').value = row.repo_url || '';
       document.getElementById('pj-new-order').value = row.sort_order || 0;
+      document.getElementById('pj-new-image').value = '';
+      const pjPreview = document.getElementById('pj-current-image');
+      if (row.preview_image_url){ pjPreview.src = row.preview_image_url; pjPreview.style.display = 'block'; }
+      else { pjPreview.style.display = 'none'; }
       document.getElementById('pj-new-save').textContent = 'Cập nhật dự án';
       document.getElementById('pj-cancel-edit').style.display = 'inline-block';
       document.getElementById('tab-projects').scrollIntoView({ behavior: 'smooth' });
@@ -446,6 +461,8 @@
     ['title','dates','role','desc','bullets','stack','demo','repo'].forEach(f => document.getElementById('pj-new-' + f).value = '');
     document.getElementById('pj-new-status').value = 'done';
     document.getElementById('pj-new-order').value = 0;
+    document.getElementById('pj-new-image').value = '';
+    document.getElementById('pj-current-image').style.display = 'none';
     document.getElementById('pj-new-save').textContent = 'Thêm dự án';
     document.getElementById('pj-cancel-edit').style.display = 'none';
   }
@@ -456,27 +473,50 @@
     if (!title) return alert('Điền tên dự án.');
     const bullets = document.getElementById('pj-new-bullets').value.split('\n').map(s => s.trim()).filter(Boolean);
     const stack = document.getElementById('pj-new-stack').value.split('\n').map(s => s.trim()).filter(Boolean);
-    const payload = {
-      title,
-      date_range: document.getElementById('pj-new-dates').value || null,
-      status: document.getElementById('pj-new-status').value,
-      role_note: document.getElementById('pj-new-role').value || null,
-      description: document.getElementById('pj-new-desc').value || null,
-      bullets, stack,
-      demo_url: document.getElementById('pj-new-demo').value || null,
-      repo_url: document.getElementById('pj-new-repo').value || null,
-      sort_order: parseInt(document.getElementById('pj-new-order').value) || 0,
-    };
 
-    let error;
-    if (editingProjectId){
-      ({ error } = await sb.from('projects').update(payload).eq('id', editingProjectId));
-    } else {
-      ({ error } = await sb.from('projects').insert(payload));
+    const btn = document.getElementById('pj-new-save');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Đang lưu...';
+
+    try {
+      let preview_image_url = editingProjectId
+        ? (currentProjectList.find(x => x.id == editingProjectId)?.preview_image_url || null)
+        : null;
+
+      const file = document.getElementById('pj-new-image').files[0];
+      if (file){
+        preview_image_url = await uploadImage('projects', file);
+      }
+
+      const payload = {
+        title,
+        date_range: document.getElementById('pj-new-dates').value || null,
+        status: document.getElementById('pj-new-status').value,
+        role_note: document.getElementById('pj-new-role').value || null,
+        description: document.getElementById('pj-new-desc').value || null,
+        bullets, stack,
+        preview_image_url,
+        demo_url: document.getElementById('pj-new-demo').value || null,
+        repo_url: document.getElementById('pj-new-repo').value || null,
+        sort_order: parseInt(document.getElementById('pj-new-order').value) || 0,
+      };
+
+      let error;
+      if (editingProjectId){
+        ({ error } = await sb.from('projects').update(payload).eq('id', editingProjectId));
+      } else {
+        ({ error } = await sb.from('projects').insert(payload));
+      }
+      if (error) throw error;
+      resetProjectForm();
+      loadProjects();
+    } catch (err) {
+      alert('Lỗi khi lưu: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
-    if (error) return alert('Lỗi khi lưu: ' + error.message);
-    resetProjectForm();
-    loadProjects();
   };
 
   // ---------- Certificates ----------
