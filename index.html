@@ -49,9 +49,12 @@
   .hero-ribbon-track span{font-family:"Baloo 2",sans-serif;font-size:18px;font-weight:700;color:var(--hero-accent-soft);letter-spacing:0.08em;white-space:nowrap;}
   @keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .hero .role{color:var(--ink-soft);font-size:16px;margin-top:4px;}
-  .role-display{margin:2px 0 10px;}
-  .role-display .rd-serif{display:block;font-family:Georgia,serif;font-style:italic;font-size:clamp(24px,4vw,36px);color:var(--ink);line-height:1.05;}
-  .role-display .rd-bold{display:block;font-size:clamp(20px,3.2vw,30px);font-weight:800;color:var(--ink);}
+  .hero-role-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:2px 0 4px;}
+  .role-display{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;}
+  .role-display .rd-serif{font-family:Georgia,serif;font-style:italic;font-size:clamp(19px,2.6vw,24px);color:var(--ink);}
+  .role-display .rd-bold{font-size:clamp(19px,2.6vw,24px);font-weight:800;color:var(--ink);}
+  .status-pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);}
+  .status-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto;box-shadow:0 0 0 3px var(--accent-soft);}
   .hero p.lede{max-width:60ch;font-size:17px;margin:0 0 30px;}
   .hero-links{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:14.5px;}
   .hero-links .icon-link{
@@ -157,6 +160,10 @@
 <div id="app" class="wrap" style="display:none;">
   <div class="hero">
     <div class="hero-name-full"><h1 id="p-name"></h1></div>
+    <div class="hero-role-row">
+      <div class="role-display" id="role-display"></div>
+      <span class="status-pill"><span class="dot"></span>Đang tìm cơ hội thực tập / việc làm Frontend</span>
+    </div>
     <div class="hero-infobar">
       <div class="hero-infobar-left hero-links" id="hero-links"></div>
       <nav class="hero-nav">
@@ -188,7 +195,6 @@
         <div class="role" id="p-role"></div>
       </div>
     </div>
-    <div class="role-display" id="role-display"></div>
     <p class="lede" id="p-lede"></p>
     <div class="skillbars" id="skillbars"></div>
   </div>
