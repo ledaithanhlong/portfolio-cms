@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lê Đại Thanh Long — Portfolio</title>
+  <title>Lê Đại Thanh Long — Public Portfolio</title>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* DESIGN TOKENS */
+    /* DESIGN TOKENS (Gemini Clean Editorial System) */
     :root {
       --bg: #F3F1EA;
       --surface: #FBFAF5;
@@ -60,6 +60,8 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
     }
 
     a { color: inherit; text-decoration: none; }
@@ -135,6 +137,7 @@
       font-size: 0.8125rem;
       color: var(--accent);
       margin-left: 0.25rem;
+      font-weight: 400;
     }
 
     .nav-links {
@@ -160,6 +163,11 @@
       padding: var(--space-6) 0 var(--space-5) 0;
     }
 
+    .hero-main {
+      display: flex;
+      flex-direction: column;
+    }
+
     .hero-meta {
       font-family: var(--font-mono);
       font-size: 0.8125rem;
@@ -168,6 +176,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-2);
+      flex-wrap: wrap;
     }
 
     .status-badge {
@@ -213,9 +222,48 @@
       margin-bottom: var(--space-4);
     }
 
-    .hero-actions {
+    /* STRICT 3-ICON SOCIAL ROW */
+    .hero-social-row {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      margin-bottom: var(--space-4);
+    }
+
+    .social-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background-color: transparent;
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+
+    .social-icon-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .social-icon-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* CTA ROW */
+    .hero-cta-row {
       display: flex;
       gap: var(--space-3);
+      align-items: center;
     }
 
     .btn {
@@ -237,6 +285,7 @@
     .btn-secondary { background-color: var(--surface); border-color: var(--border); color: var(--text); }
     .btn-secondary:hover { border-color: var(--text); }
 
+    /* SIDE PANEL SPECIFICATIONS */
     .hero-side-panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -254,6 +303,7 @@
       color: var(--text-muted);
       border-bottom: 1px solid var(--border);
       padding-bottom: var(--space-2);
+      letter-spacing: 0.05em;
     }
 
     .spec-item {
@@ -274,7 +324,7 @@
       font-weight: 500;
     }
 
-    /* ABOUT */
+    /* ABOUT SECTION */
     .about-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -289,7 +339,7 @@
       gap: var(--space-3);
     }
 
-    /* PROJECTS */
+    /* PROJECTS SECTION */
     .projects-grid {
       display: flex;
       flex-direction: column;
@@ -357,7 +407,7 @@
 
     .project-links {
       display: flex;
-      gap: var(--space-3);
+      gap: var(--space-4);
       border-top: 1px solid var(--border);
       padding-top: var(--space-3);
     }
@@ -374,6 +424,7 @@
       background-color: var(--bg);
       border-left: 1px solid var(--border);
       min-height: 240px;
+      position: relative;
     }
 
     .project-img {
@@ -382,7 +433,7 @@
       object-fit: cover;
     }
 
-    /* SKILLS & CERTS */
+    /* SKILLS & CERTIFICATES */
     .skills-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -476,10 +527,12 @@
       font-family: var(--font-mono);
       font-size: 0.8125rem;
       display: none;
+      padding: 0.5rem;
+      border-radius: var(--radius);
     }
 
-    .form-status.success { display: block; color: var(--status-done); }
-    .form-status.error { display: block; color: var(--accent); }
+    .form-status.success { display: block; color: var(--status-done); background: rgba(63,107,79,0.1); }
+    .form-status.error { display: block; color: var(--accent); background: var(--accent-soft); }
 
     /* FOOTER */
     .footer {
@@ -495,15 +548,81 @@
       font-family: var(--font-mono);
       font-size: 0.8125rem;
       color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: var(--space-3);
     }
 
     .footer-links { display: flex; gap: var(--space-4); list-style: none; }
 
-    /* RESPONSIVE */
+    /* BACK TO TOP BUTTON */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 90;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.15s ease, color 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .back-to-top.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .back-to-top:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .back-to-top svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* RESPONSIVE OPTIMIZATION */
     @media (max-width: 900px) {
       .hero-grid, .about-grid, .project-card, .contact-grid { grid-template-columns: 1fr; }
-      .project-preview { border-left: none; border-top: 1px solid var(--border); }
+      .project-preview { border-left: none; border-top: 1px solid var(--border); min-height: 200px; }
       .hero-title { font-size: 2.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      .nav-links { gap: var(--space-2); }
+      .nav-link { font-size: 0.75rem; }
+      .hero-title { font-size: 1.875rem; }
+      .hero-cta-row { width: 100%; }
+      .btn { flex: 1; }
+
+      /* Mobile adjustment for Back to Top */
+      .back-to-top {
+        bottom: 1.25rem;
+        right: 1.25rem;
+        width: 36px;
+        height: 36px;
+      }
+      .back-to-top svg {
+        width: 16px;
+        height: 16px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -512,16 +631,20 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
       }
+      .back-to-top {
+        transition: opacity 0.15s ease;
+        transform: none !important;
+      }
     }
   </style>
 </head>
 <body>
 
   <!-- HEADER / NAVIGATION -->
-  <header class="nav-header">
+  <header class="nav-header" id="top">
     <div class="container nav-inner">
       <a href="#" class="nav-brand" id="nav-brand-name">LÊ ĐẠI THANH LONG <span>/ PORTFOLIO</span></a>
-      <nav>
+      <nav aria-label="Main Navigation">
         <ul class="nav-links">
           <li><a href="#about" class="nav-link">About</a></li>
           <li><a href="#projects" class="nav-link">Projects</a></li>
@@ -534,25 +657,44 @@
   </header>
 
   <!-- HERO SECTION -->
-  <section class="section">
+  <section class="section" aria-label="Introduction">
     <div class="container hero-grid">
       <div class="hero-main">
         <div class="hero-meta">
           <span>$ role --frontend</span>
-          <span class="status-badge"><span class="status-dot"></span> Available for Internship</span>
+          <span class="status-badge" id="hero-status-badge"><span class="status-dot"></span> Available for Internship</span>
         </div>
         <h1 class="hero-title" id="profile-name">Lê Đại Thanh Long</h1>
         <h2 class="hero-subtitle" id="profile-title">Frontend Developer Intern</h2>
         <p class="hero-bio" id="profile-bio">
           Building responsive web experiences with React, Next.js, modern JavaScript, and clean frontend architecture.
         </p>
-        <div class="hero-actions">
+        
+        <!-- STRICT 3-ICON SOCIAL ROW (NO LOCATION, NO TEXT) -->
+        <div class="hero-social-row">
+          <!-- 1. Email -->
+          <a href="mailto:lucaslee050304@gmail.com" id="hero-email-link" class="social-icon-btn" aria-label="Send Email" title="lucaslee050304@gmail.com">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          </a>
+          <!-- 2. GitHub -->
+          <a href="https://github.com/ledaithanhlong" id="hero-github-link" target="_blank" rel="noopener" class="social-icon-btn" aria-label="GitHub Profile" title="GitHub">
+            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          </a>
+          <!-- 3. LinkedIn -->
+          <a href="https://www.linkedin.com/in/thanh-long-le-dai-994090388/" id="hero-linkedin-link" target="_blank" rel="noopener" class="social-icon-btn" aria-label="LinkedIn Profile" title="LinkedIn">
+            <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+          </a>
+        </div>
+
+        <!-- SEPARATE CTA ROW -->
+        <div class="hero-cta-row">
           <a href="#projects" class="btn btn-primary">View Projects</a>
           <a href="#contact" class="btn btn-secondary">Contact</a>
         </div>
       </div>
 
-      <div class="hero-side-panel">
+      <!-- EDITORIAL INFORMATION PANEL (LOCATION KEPT HERE ONLY) -->
+      <aside class="hero-side-panel" aria-label="System Specifications">
         <div class="panel-header">System Specifications</div>
         <div class="spec-item">
           <span class="spec-label">Location</span>
@@ -560,17 +702,17 @@
         </div>
         <div class="spec-item">
           <span class="spec-label">Focus</span>
-          <span class="spec-value">Frontend Engineering & Systems Design</span>
+          <span class="spec-value" id="profile-focus">Frontend Engineering & Systems Design</span>
         </div>
         <div class="spec-item">
           <span class="spec-label">Primary Tech</span>
-          <span class="spec-value">JS / React / HTML / CSS / REST APIs</span>
+          <span class="spec-value" id="profile-primary-tech">JS / React / HTML / CSS / REST APIs</span>
         </div>
         <div class="spec-item">
           <span class="spec-label">Status</span>
-          <span class="spec-value" style="color: var(--status-done);">Open for Internship</span>
+          <span class="spec-value" id="profile-status-text" style="color: var(--status-done);">Open for Internship</span>
         </div>
-      </div>
+      </aside>
     </div>
   </section>
 
@@ -579,21 +721,21 @@
     <div class="container">
       <div class="section-header">
         <span class="section-num">01 /</span>
-        <h2 class="section-title">About & Background</h2>
+        <h2 class="section-title">About & Positioning</h2>
       </div>
       <div class="about-grid">
         <div class="spec-item">
           <span class="spec-label">Specialization</span>
           <span class="spec-value" style="font-size: 1rem; line-height: 1.5;">
-            Information Technology student focusing on system modeling, database structures, and maintainable user interfaces.
+            Information Technology student specializing in system modeling, clean database integration, and structured web interfaces.
           </span>
         </div>
         <div class="about-text">
           <p>
-            I approach frontend development through the lens of systems engineering—prioritizing clean code structure, sensible data pipelines, and responsive layouts.
+            I approach web development from a systems perspective—emphasizing predictable data flow, clean layout structures, and maintainable frontend architectures.
           </p>
           <p>
-            My academic and project experience includes designing web applications, developing REST API integrations, and creating technical models like UML diagrams and ELT data zone architectures.
+            My academic and project work spans frontend web application building, REST API communication, database modeling (UML/ERD), and pipeline architecture design.
           </p>
         </div>
       </div>
@@ -618,7 +760,7 @@
     <div class="container">
       <div class="section-header">
         <span class="section-num">03 /</span>
-        <h2 class="section-title">Skills</h2>
+        <h2 class="section-title">Skills & Capabilities</h2>
       </div>
       <div class="skills-grid" id="skills-container">
         <p class="spec-label">Loading skills...</p>
@@ -649,11 +791,11 @@
       <div class="contact-grid">
         <div>
           <p class="hero-bio" style="margin-bottom: 1.5rem;">
-            Feel free to reach out for internship opportunities or technical collaboration.
+            Feel free to reach out directly for internship opportunities or technical questions.
           </p>
           <div class="spec-item" style="margin-bottom: 1rem;">
             <span class="spec-label">Direct Email</span>
-            <span class="spec-value" id="contact-email-display">long.ldt@example.com</span>
+            <a href="mailto:lucaslee050304@gmail.com" id="contact-email-display" class="spec-value" style="color: var(--accent); text-decoration: underline;">lucaslee050304@gmail.com</a>
           </div>
         </div>
 
@@ -676,7 +818,7 @@
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Send Message</button>
-          <div id="form-status" class="form-status"></div>
+          <div id="form-status" class="form-status" role="alert"></div>
         </form>
       </div>
     </div>
@@ -685,36 +827,83 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
-      <div id="footer-copyright">&copy; 2026 Lê Đại Thanh Long. All rights reserved.</div>
+      <div id="footer-copyright">&copy; Lê Đại Thanh Long. All rights reserved.</div>
       <ul class="footer-links">
-        <li><a href="https://github.com" id="footer-github" target="_blank" rel="noopener" class="nav-link">GitHub</a></li>
-        <li><a href="https://linkedin.com" id="footer-linkedin" target="_blank" rel="noopener" class="nav-link">LinkedIn</a></li>
+        <li><a href="mailto:lucaslee050304@gmail.com" id="footer-email" class="nav-link">Email</a></li>
+        <li><a href="https://github.com/ledaithanhlong" id="footer-github" target="_blank" rel="noopener" class="nav-link">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/thanh-long-le-dai-994090388/" id="footer-linkedin" target="_blank" rel="noopener" class="nav-link">LinkedIn</a></li>
       </ul>
     </div>
   </footer>
 
-  <!-- SUPABASE & SCRIPT LOGIC -->
+  <!-- BACK TO TOP BUTTON -->
+  <button id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+  </button>
+
+  <!-- SUPABASE & APPLICATION LOGIC -->
   <script>
     const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_URL.supabase.co';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     
-    // Khởi tạo Supabase client nếu đã điền config
+    // Initialize Supabase Client safely
     const supabase = (window.supabase && !SUPABASE_URL.includes('YOUR_SUPABASE')) 
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
       : null;
 
+    // KÍCH HOẠT NGAY KHI DOM SẴN SÀNG
     document.addEventListener('DOMContentLoaded', () => {
+      // 1. Chạy Back To Top trước để không bị ảnh hưởng bởi Supabase
+      setupBackToTop();
+
+      // 2. Chạy form contact
+      setupContactForm();
+
+      // 3. Fetch dữ liệu Supabase
       if (supabase) {
         fetchProfile();
         fetchProjects();
         fetchSkills();
         fetchCertificates();
       } else {
-        console.warn('Supabase URL/Key chưa được cấu hình. Đang hiển thị fallback UI tĩnh.');
+        console.warn('Supabase URL or Key not set. Using local HTML fallback content.');
       }
-      setupContactForm();
     });
 
+    // CẤU TRÚC LẠI HÀM BACK TO TOP (ĐẢM BẢO HOẠT ĐỘNG 100%)
+    function setupBackToTop() {
+      const backToTopBtn = document.getElementById('back-to-top');
+      if (!backToTopBtn) return;
+
+      const handleScroll = () => {
+        // Lấy vị trí scroll tương thích mọi trình duyệt
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        
+        if (scrollPosition > 100) {
+          backToTopBtn.classList.add('is-visible');
+        } else {
+          backToTopBtn.classList.remove('is-visible');
+        }
+      };
+
+      // Lắng nghe scroll trên cả window và document
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      document.addEventListener('scroll', handleScroll, { passive: true });
+
+      // Gọi kiểm tra ngay lập tức khi load
+      handleScroll();
+
+      // Sự kiện Click cuộn lên đầu
+      backToTopBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+
+    // 1. FETCH PROFILE
     async function fetchProfile() {
       try {
         const { data, error } = await supabase.from('profile').select('*').limit(1).single();
@@ -728,15 +917,37 @@
         if (data.title) document.getElementById('profile-title').textContent = data.title;
         if (data.bio) document.getElementById('profile-bio').textContent = data.bio;
         if (data.location) document.getElementById('profile-location').textContent = data.location;
-        if (data.email) document.getElementById('contact-email-display').textContent = data.email;
+        if (data.focus) document.getElementById('profile-focus').textContent = data.focus;
+        if (data.primary_tech) document.getElementById('profile-primary-tech').textContent = data.primary_tech;
+        if (data.status) {
+          document.getElementById('profile-status-text').textContent = data.status;
+          document.getElementById('hero-status-badge').innerHTML = `<span class="status-dot"></span> ${data.status}`;
+        }
+        
+        if (data.email) {
+          const emailDisplay = document.getElementById('contact-email-display');
+          emailDisplay.textContent = data.email;
+          emailDisplay.href = `mailto:${data.email}`;
+          document.getElementById('hero-email-link').href = `mailto:${data.email}`;
+          document.getElementById('hero-email-link').title = data.email;
+          document.getElementById('footer-email').href = `mailto:${data.email}`;
+        }
 
-        if (data.github_url) document.getElementById('footer-github').href = data.github_url;
-        if (data.linkedin_url) document.getElementById('footer-linkedin').href = data.linkedin_url;
+        if (data.github_url) {
+          document.getElementById('hero-github-link').href = data.github_url;
+          document.getElementById('footer-github').href = data.github_url;
+        }
+
+        if (data.linkedin_url) {
+          document.getElementById('hero-linkedin-link').href = data.linkedin_url;
+          document.getElementById('footer-linkedin').href = data.linkedin_url;
+        }
       } catch (err) {
         console.error('Error fetching profile:', err);
       }
     }
 
+    // 2. FETCH PROJECTS
     async function fetchProjects() {
       const container = document.getElementById('projects-grid');
       try {
@@ -746,7 +957,7 @@
           .order('created_at', { ascending: false });
 
         if (error || !projects || projects.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có dữ liệu dự án từ Supabase.</p>';
+          container.innerHTML = '<p class="spec-label">Chưa có dữ liệu dự án.</p>';
           return;
         }
 
@@ -793,17 +1004,18 @@
 
       } catch (err) {
         console.error('Error fetching projects:', err);
-        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Không thể kết nối danh sách dự án.</p>';
+        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Không thể tải danh sách dự án.</p>';
       }
     }
 
+    // 3. FETCH SKILLS
     async function fetchSkills() {
       const container = document.getElementById('skills-container');
       try {
         const { data: skills, error } = await supabase.from('skills').select('*');
 
         if (error || !skills || skills.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có dữ liệu kỹ năng từ Supabase.</p>';
+          container.innerHTML = '<p class="spec-label">Chưa có thông tin kỹ năng.</p>';
           return;
         }
 
@@ -820,13 +1032,14 @@
       }
     }
 
+    // 4. FETCH CERTIFICATES
     async function fetchCertificates() {
       const container = document.getElementById('certificates-list');
       try {
         const { data: certs, error } = await supabase.from('certificates').select('*');
 
         if (error || !certs || certs.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có dữ liệu chứng chỉ từ Supabase.</p>';
+          container.innerHTML = '<p class="spec-label">Chưa có chứng chỉ.</p>';
           return;
         }
 
@@ -846,6 +1059,7 @@
       }
     }
 
+    // 5. CONTACT FORM
     function setupContactForm() {
       const form = document.getElementById('contact-form');
       const statusDiv = document.getElementById('form-status');
@@ -870,7 +1084,7 @@
 
           if (response.ok) {
             statusDiv.className = 'form-status success';
-            statusDiv.textContent = 'Gửi tin nhắn thành công!';
+            statusDiv.textContent = 'Tin nhắn của bạn đã được gửi thành công!';
             form.reset();
           } else {
             statusDiv.className = 'form-status error';
