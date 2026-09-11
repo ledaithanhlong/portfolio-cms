@@ -359,6 +359,7 @@
 
     .project-card:hover { border-color: var(--text); }
     .project-card.is-upcoming { border-style: dashed; }
+    .project-card.no-preview { grid-template-columns: 1fr; }
 
     .project-content {
       padding: var(--space-4);
@@ -841,7 +842,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmYm93cnhpeWhncGFpbG5hZHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzU0NzUsImV4cCI6MjEwMzgxMTQ3NX0.0gzpL6aZQgg_AONmirQCMeHc_3T_40U_Ib2_jgNXrc0';
     
     // Initialize Supabase Client safely
-    const supabase = (window.supabase && !SUPABASE_URL.includes('YOUR_SUPABASE')) 
+    const sb = (window.supabase && !SUPABASE_URL.includes('YOUR_SUPABASE')) 
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
       : null;
 
@@ -854,7 +855,7 @@
       setupContactForm();
 
       // 3. Fetch dữ liệu Supabase
-      if (supabase) {
+      if (sb) {
         fetchProfile();
         fetchProjects();
         fetchSkills();
@@ -900,7 +901,7 @@
     // 1. FETCH PROFILE
     async function fetchProfile() {
       try {
-        const { data, error } = await supabase.from('profile').select('*').eq('id', 1).single();
+        const { data, error } = await sb.from('profile').select('*').eq('id', 1).single();
         if (error || !data) return;
 
         if (data.name) {
@@ -945,7 +946,7 @@
     // 1b. FETCH SKILL BARS — dùng để điền "Primary Tech" trong panel, CMS-driven thay vì hardcode
     async function fetchSkillBarsForPanel() {
       try {
-        const { data, error } = await supabase.from('skill_bars').select('*').order('sort_order');
+        const { data, error } = await sb.from('skill_bars').select('*').order('sort_order');
         if (error || !data || !data.length) return;
         document.getElementById('profile-primary-tech').textContent = data.map(s => s.label).join(' / ');
       } catch (err) {
@@ -957,7 +958,7 @@
     async function fetchProjects() {
       const container = document.getElementById('projects-grid');
       try {
-        const { data: projects, error } = await supabase
+        const { data: projects, error } = await sb
           .from('projects')
           .select('*')
           .order('sort_order');
@@ -981,8 +982,10 @@
           if (proj.repo_url) linkParts.push(`<a href="${proj.repo_url}" target="_blank" rel="noopener" class="project-link">Source Code &rarr;</a>`);
           if (!proj.demo_url && isDone) linkParts.push(`<span class="project-link" style="color:var(--text-muted);">Internal project — demo unavailable</span>`);
 
+          const hasPreview = !!proj.preview_image_url;
+
           return `
-            <article class="project-card ${!isDone ? 'is-upcoming' : ''}">
+            <article class="project-card ${!isDone ? 'is-upcoming' : ''} ${!hasPreview ? 'no-preview' : ''}">
               <div class="project-content">
                 <div>
                   <div class="project-meta-top">
@@ -1004,9 +1007,10 @@
                 ${linkParts.length ? `<div class="project-links">${linkParts.join('')}</div>` : ''}
               </div>
 
+              ${hasPreview ? `
               <div class="project-preview">
-                ${proj.preview_image_url ? `<img src="${proj.preview_image_url}" alt="${proj.title || 'Project preview'} screenshot" class="project-img" loading="lazy">` : ''}
-              </div>
+                <img src="${proj.preview_image_url}" alt="${proj.title || 'Project preview'} screenshot" class="project-img" loading="lazy">
+              </div>` : ''}
             </article>
           `;
         }).join('');
@@ -1030,7 +1034,7 @@
     async function fetchSkills() {
       const container = document.getElementById('skills-container');
       try {
-        const { data: skills, error } = await supabase.from('skills').select('*').order('sort_order');
+        const { data: skills, error } = await sb.from('skills').select('*').order('sort_order');
 
         if (error || !skills || skills.length === 0) {
           container.innerHTML = '<p class="spec-label">No skills listed yet.</p>';
@@ -1064,7 +1068,7 @@
     async function fetchCertificates() {
       const container = document.getElementById('certificates-list');
       try {
-        const { data: certs, error } = await supabase.from('certificates').select('*').order('sort_order');
+        const { data: certs, error } = await sb.from('certificates').select('*').order('sort_order');
 
         if (error || !certs || certs.length === 0) {
           container.innerHTML = '<p class="spec-label">No certificates yet.</p>';
