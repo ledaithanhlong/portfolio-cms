@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -358,6 +358,7 @@
     }
 
     .project-card:hover { border-color: var(--text); }
+    .project-card.is-upcoming { border-style: dashed; }
 
     .project-content {
       padding: var(--space-4);
@@ -725,18 +726,11 @@
       </div>
       <div class="about-grid">
         <div class="spec-item">
-          <span class="spec-label">Specialization</span>
-          <span class="spec-value" style="font-size: 1rem; line-height: 1.5;">
-            Information Technology student specializing in system modeling, clean database integration, and structured web interfaces.
-          </span>
+          <span class="spec-label">Background</span>
+          <span class="spec-value" id="about-role" style="font-size: 1rem; line-height: 1.5;">—</span>
         </div>
         <div class="about-text">
-          <p>
-            I approach web development from a systems perspective—emphasizing predictable data flow, clean layout structures, and maintainable frontend architectures.
-          </p>
-          <p>
-            My academic and project work spans frontend web application building, REST API communication, database modeling (UML/ERD), and pipeline architecture design.
-          </p>
+          <p id="about-lede">Loading…</p>
         </div>
       </div>
     </div>
@@ -800,7 +794,7 @@
         </div>
 
         <form id="contact-form" class="contact-form" action="https://api.web3forms.com/submit" method="POST">
-          <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY">
+          <input type="hidden" name="access_key" value="bb13a687-36ad-49c6-a16e-275f34542245">
           
           <div class="form-group">
             <label for="name" class="form-label">Name</label>
@@ -843,8 +837,8 @@
 
   <!-- SUPABASE & APPLICATION LOGIC -->
   <script>
-    const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_URL.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://yfbowrxiyhgpailnadvz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmYm93cnhpeWhncGFpbG5hZHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzU0NzUsImV4cCI6MjEwMzgxMTQ3NX0.0gzpL6aZQgg_AONmirQCMeHc_3T_40U_Ib2_jgNXrc0';
     
     // Initialize Supabase Client safely
     const supabase = (window.supabase && !SUPABASE_URL.includes('YOUR_SUPABASE')) 
@@ -879,7 +873,7 @@
         // Lấy vị trí scroll tương thích mọi trình duyệt
         const scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
         
-        if (scrollPosition > 100) {
+        if (scrollPosition > 450) {
           backToTopBtn.classList.add('is-visible');
         } else {
           backToTopBtn.classList.remove('is-visible');
@@ -906,24 +900,25 @@
     // 1. FETCH PROFILE
     async function fetchProfile() {
       try {
-        const { data, error } = await supabase.from('profile').select('*').limit(1).single();
+        const { data, error } = await supabase.from('profile').select('*').eq('id', 1).single();
         if (error || !data) return;
 
-        if (data.full_name) {
-          document.getElementById('profile-name').textContent = data.full_name;
-          document.getElementById('nav-brand-name').innerHTML = `${data.full_name.toUpperCase()} <span>/ PORTFOLIO</span>`;
-          document.getElementById('footer-copyright').textContent = `© ${data.full_name}. All rights reserved.`;
+        if (data.name) {
+          document.getElementById('profile-name').textContent = data.name;
+          document.getElementById('nav-brand-name').innerHTML = `${data.name.toUpperCase()} <span>/ PORTFOLIO</span>`;
+          document.getElementById('footer-copyright').textContent = `© ${new Date().getFullYear()} ${data.name}. All rights reserved.`;
         }
-        if (data.title) document.getElementById('profile-title').textContent = data.title;
-        if (data.bio) document.getElementById('profile-bio').textContent = data.bio;
+        if (data.role) document.getElementById('profile-title').textContent = data.role;
+        if (data.lede) {
+          document.getElementById('profile-bio').textContent = data.lede;
+          document.getElementById('about-lede').textContent = data.lede;
+        }
+        if (data.role) document.getElementById('about-role').textContent = data.role;
         if (data.location) document.getElementById('profile-location').textContent = data.location;
-        if (data.focus) document.getElementById('profile-focus').textContent = data.focus;
-        if (data.primary_tech) document.getElementById('profile-primary-tech').textContent = data.primary_tech;
-        if (data.status) {
-          document.getElementById('profile-status-text').textContent = data.status;
-          document.getElementById('hero-status-badge').innerHTML = `<span class="status-dot"></span> ${data.status}`;
-        }
-        
+        // Ghi chú: bảng `profile` hiện chưa có cột riêng cho "focus" và "status" —
+        // hai giá trị này giữ nguyên mặc định tĩnh (không phải dữ liệu bịa, chỉ là
+        // chưa có field tương ứng trong Supabase — xem mục PHASE 2 trong báo cáo).
+
         if (data.email) {
           const emailDisplay = document.getElementById('contact-email-display');
           emailDisplay.textContent = data.email;
@@ -947,6 +942,17 @@
       }
     }
 
+    // 1b. FETCH SKILL BARS — dùng để điền "Primary Tech" trong panel, CMS-driven thay vì hardcode
+    async function fetchSkillBarsForPanel() {
+      try {
+        const { data, error } = await supabase.from('skill_bars').select('*').order('sort_order');
+        if (error || !data || !data.length) return;
+        document.getElementById('profile-primary-tech').textContent = data.map(s => s.label).join(' / ');
+      } catch (err) {
+        console.error('Error fetching skill_bars:', err);
+      }
+    }
+
     // 2. FETCH PROJECTS
     async function fetchProjects() {
       const container = document.getElementById('projects-grid');
@@ -954,49 +960,52 @@
         const { data: projects, error } = await supabase
           .from('projects')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('sort_order');
 
         if (error || !projects || projects.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có dữ liệu dự án.</p>';
+          container.innerHTML = '<p class="spec-label">No projects yet.</p>';
           return;
         }
 
         container.innerHTML = projects.map((proj, idx) => {
           const num = String(idx + 1).padStart(2, '0');
-          const techList = proj.tech_stack ? (Array.isArray(proj.tech_stack) ? proj.tech_stack : proj.tech_stack.split(',')) : [];
-          
-          let imageUrl = proj.image_url;
-          if (imageUrl && !imageUrl.startsWith('http')) {
-            const { data } = supabase.storage.from('projects').getPublicUrl(imageUrl);
-            imageUrl = data?.publicUrl || '';
-          }
+          const techList = proj.stack || [];
+          const bullets = (proj.bullets || []).map(b => `<li>${b}</li>`).join('');
+          const context = [proj.role_note, proj.date_range].filter(Boolean).join(' · ');
+          const isDone = proj.status === 'done';
+          const statusText = isDone ? 'DONE' : 'IN PROGRESS';
+          const statusColor = isDone ? 'var(--status-done)' : 'var(--status-wip)';
+
+          const linkParts = [];
+          if (proj.demo_url) linkParts.push(`<a href="${proj.demo_url}" target="_blank" rel="noopener" class="project-link">View Project &rarr;</a>`);
+          if (proj.repo_url) linkParts.push(`<a href="${proj.repo_url}" target="_blank" rel="noopener" class="project-link">Source Code &rarr;</a>`);
+          if (!proj.demo_url && isDone) linkParts.push(`<span class="project-link" style="color:var(--text-muted);">Internal project — demo unavailable</span>`);
 
           return `
-            <article class="project-card">
+            <article class="project-card ${!isDone ? 'is-upcoming' : ''}">
               <div class="project-content">
                 <div>
                   <div class="project-meta-top">
                     <span>PROJECT / ${num}</span>
-                    <span>${proj.status || ''}</span>
+                    <span style="color:${statusColor}; font-weight:600;">${statusText}</span>
                   </div>
                   <h3 class="project-title">${proj.title || 'Untitled Project'}</h3>
+                  ${context ? `<div class="hero-subtitle" style="font-size:0.8125rem; margin-bottom:var(--space-2);">${context}</div>` : ''}
                   <p class="project-desc">${proj.description || ''}</p>
-                  
+                  ${bullets ? `<div class="spec-label" style="margin-bottom:var(--space-2);">Technical details</div><ul style="padding-left:18px; margin-bottom:var(--space-4); font-size:0.875rem;">${bullets}</ul>` : ''}
+
                   ${techList.length ? `
                     <div class="project-tech">
-                      ${techList.map(t => `<span class="tech-tag">${t.trim()}</span>`).join('')}
+                      ${techList.map(t => `<span class="tech-tag">${t}</span>`).join('')}
                     </div>
                   ` : ''}
                 </div>
 
-                <div class="project-links">
-                  ${proj.demo_url ? `<a href="${proj.demo_url}" target="_blank" rel="noopener" class="project-link">View Project &rarr;</a>` : ''}
-                  ${proj.github_url ? `<a href="${proj.github_url}" target="_blank" rel="noopener" class="project-link">Source Code &rarr;</a>` : ''}
-                </div>
+                ${linkParts.length ? `<div class="project-links">${linkParts.join('')}</div>` : ''}
               </div>
 
               <div class="project-preview">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${proj.title || 'Project Preview'}" class="project-img" loading="lazy">` : ''}
+                ${proj.preview_image_url ? `<img src="${proj.preview_image_url}" alt="${proj.title || 'Project preview'} screenshot" class="project-img" loading="lazy">` : ''}
               </div>
             </article>
           `;
@@ -1004,31 +1013,50 @@
 
       } catch (err) {
         console.error('Error fetching projects:', err);
-        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Không thể tải danh sách dự án.</p>';
+        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Unable to load projects.</p>';
       }
     }
 
     // 3. FETCH SKILLS
+    function tierLabel(tier) {
+      return { solid: 'Core', developing: 'Developing', exposed: 'Familiar' }[tier] || tier;
+    }
+    function tierNote(tier) {
+      return {
+        developing: 'Used in real project work, still going deeper.',
+        exposed: 'Used once in a specific project, not yet a core strength.'
+      }[tier] || '';
+    }
     async function fetchSkills() {
       const container = document.getElementById('skills-container');
       try {
-        const { data: skills, error } = await supabase.from('skills').select('*');
+        const { data: skills, error } = await supabase.from('skills').select('*').order('sort_order');
 
         if (error || !skills || skills.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có thông tin kỹ năng.</p>';
+          container.innerHTML = '<p class="spec-label">No skills listed yet.</p>';
           return;
         }
 
-        container.innerHTML = skills.map(s => `
-          <div class="skill-card">
-            <div class="skill-name">${s.name || ''}</div>
-            <div class="skill-level">${s.level || s.category || ''}</div>
-          </div>
-        `).join('');
+        const tierOrder = ['solid', 'developing', 'exposed'];
+        container.innerHTML = tierOrder.map(tier => {
+          const items = skills.filter(s => s.tier === tier);
+          if (!items.length) return '';
+          const note = tierNote(tier);
+          return `
+            <div style="grid-column: 1 / -1; margin-bottom: var(--space-2);">
+              <div class="cert-title" style="font-size:1rem; ${tier === 'solid' ? 'color:var(--accent);' : ''}">${tierLabel(tier)}</div>
+              ${note ? `<div class="spec-label" style="margin-bottom:var(--space-2);">${note}</div>` : ''}
+            </div>
+            ${items.map(s => `
+              <div class="skill-card">
+                <div class="skill-name">${s.name || ''}</div>
+              </div>`).join('')}
+          `;
+        }).join('');
 
       } catch (err) {
         console.error('Error fetching skills:', err);
-        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Không thể tải thông tin kỹ năng.</p>';
+        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Unable to load skills.</p>';
       }
     }
 
@@ -1036,26 +1064,29 @@
     async function fetchCertificates() {
       const container = document.getElementById('certificates-list');
       try {
-        const { data: certs, error } = await supabase.from('certificates').select('*');
+        const { data: certs, error } = await supabase.from('certificates').select('*').order('sort_order');
 
         if (error || !certs || certs.length === 0) {
-          container.innerHTML = '<p class="spec-label">Chưa có chứng chỉ.</p>';
+          container.innerHTML = '<p class="spec-label">No certificates yet.</p>';
           return;
         }
 
         container.innerHTML = certs.map(cert => `
           <div class="cert-card">
-            <div>
-              <h3 class="cert-title">${cert.title || ''}</h3>
-              <div class="cert-meta">${cert.issuer || ''} ${cert.issue_date ? '&bull; ' + cert.issue_date : ''}</div>
+            <div style="display:flex; gap:var(--space-3); align-items:flex-start;">
+              ${cert.image_url ? `<img src="${cert.image_url}" alt="${cert.name} certificate" style="width:64px; height:48px; object-fit:contain; background:#fff; border:1px solid var(--border); border-radius:2px; padding:3px; flex:0 0 auto;">` : ''}
+              <div>
+                <h3 class="cert-title">${cert.name || ''}</h3>
+                <div class="cert-meta">${cert.issuer_url ? `<a href="${cert.issuer_url}" target="_blank" rel="noopener">${cert.issuer || ''}</a>` : (cert.issuer || '')}</div>
+              </div>
             </div>
-            ${cert.credential_url ? `<a href="${cert.credential_url}" target="_blank" rel="noopener" class="project-link">Verify Credential &rarr;</a>` : ''}
+            ${cert.credential_url ? `<a href="${cert.credential_url}" target="_blank" rel="noopener" class="project-link">View Credential &rarr;</a>` : ''}
           </div>
         `).join('');
 
       } catch (err) {
         console.error('Error fetching certificates:', err);
-        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Không thể tải thông tin chứng chỉ.</p>';
+        container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Unable to load certificates.</p>';
       }
     }
 
@@ -1084,15 +1115,15 @@
 
           if (response.ok) {
             statusDiv.className = 'form-status success';
-            statusDiv.textContent = 'Tin nhắn của bạn đã được gửi thành công!';
+            statusDiv.textContent = 'Message sent successfully — thank you!';
             form.reset();
           } else {
             statusDiv.className = 'form-status error';
-            statusDiv.textContent = 'Gửi thất bại, vui lòng thử lại sau.';
+            statusDiv.textContent = 'Something went wrong. Please try again.';
           }
         } catch (err) {
           statusDiv.className = 'form-status error';
-          statusDiv.textContent = 'Lỗi kết nối. Vui lòng kiểm tra lại mạng.';
+          statusDiv.textContent = 'Connection error. Please check your network and try again.';
         } finally {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Send Message';
