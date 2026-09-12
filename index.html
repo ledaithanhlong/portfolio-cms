@@ -346,6 +346,19 @@
       gap: var(--space-5);
     }
 
+    .project-group-title {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-top: var(--space-2);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .project-group-title:first-child { margin-top: 0; }
+
     .project-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -1003,6 +1016,53 @@
     }
 
     // 2. FETCH PROJECTS
+    function renderProjectCard(proj, idx) {
+      const num = String(idx + 1).padStart(2, '0');
+      const techList = proj.stack || [];
+      const bullets = (proj.bullets || []).map(b => `<li>${b}</li>`).join('');
+      const context = [proj.role_note, proj.date_range].filter(Boolean).join(' · ');
+      const isDone = proj.status === 'done';
+      const statusText = isDone ? 'DONE' : 'IN PROGRESS';
+      const statusColor = isDone ? 'var(--status-done)' : 'var(--status-wip)';
+
+      const linkParts = [];
+      if (proj.demo_url) linkParts.push(`<a href="${proj.demo_url}" target="_blank" rel="noopener" class="project-link">View Project &rarr;</a>`);
+      if (proj.repo_url) linkParts.push(`<a href="${proj.repo_url}" target="_blank" rel="noopener" class="project-link">Source Code &rarr;</a>`);
+      if (!proj.demo_url && isDone) linkParts.push(`<span class="project-link" style="color:var(--text-muted);">Internal project — demo unavailable</span>`);
+
+      const hasPreview = !!proj.preview_image_url;
+
+      return `
+        <article class="project-card ${!isDone ? 'is-upcoming' : ''} ${!hasPreview ? 'no-preview' : ''}">
+          <div class="project-content">
+            <div>
+              <div class="project-meta-top">
+                <span>PROJECT / ${num}</span>
+                <span style="color:${statusColor}; font-weight:600;">${statusText}</span>
+              </div>
+              <h3 class="project-title">${proj.title || 'Untitled Project'}</h3>
+              ${context ? `<div class="hero-subtitle" style="font-size:0.8125rem; margin-bottom:var(--space-2);">${context}</div>` : ''}
+              <p class="project-desc">${proj.description || ''}</p>
+              ${bullets ? `<div class="spec-label" style="margin-bottom:var(--space-2);">Technical details</div><ul style="padding-left:18px; margin-bottom:var(--space-4); font-size:0.875rem;">${bullets}</ul>` : ''}
+
+              ${techList.length ? `
+                <div class="project-tech">
+                  ${techList.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+
+            ${linkParts.length ? `<div class="project-links">${linkParts.join('')}</div>` : ''}
+          </div>
+
+          ${hasPreview ? `
+          <div class="project-preview">
+            <img src="${proj.preview_image_url}" alt="${proj.title || 'Project preview'} screenshot" class="project-img" loading="lazy">
+          </div>` : ''}
+        </article>
+      `;
+    }
+
     async function fetchProjects() {
       const container = document.getElementById('projects-grid');
       try {
@@ -1016,58 +1076,26 @@
           return;
         }
 
-        container.innerHTML = projects.map((proj, idx) => {
-          const num = String(idx + 1).padStart(2, '0');
-          const techList = proj.stack || [];
-          const bullets = (proj.bullets || []).map(b => `<li>${b}</li>`).join('');
-          const context = [proj.role_note, proj.date_range].filter(Boolean).join(' · ');
-          const isDone = proj.status === 'done';
-          const statusText = isDone ? 'DONE' : 'IN PROGRESS';
-          const statusColor = isDone ? 'var(--status-done)' : 'var(--status-wip)';
+        const done = projects.filter(p => p.status === 'done');
+        const upcoming = projects.filter(p => p.status !== 'done');
 
-          const linkParts = [];
-          if (proj.demo_url) linkParts.push(`<a href="${proj.demo_url}" target="_blank" rel="noopener" class="project-link">View Project &rarr;</a>`);
-          if (proj.repo_url) linkParts.push(`<a href="${proj.repo_url}" target="_blank" rel="noopener" class="project-link">Source Code &rarr;</a>`);
-          if (!proj.demo_url && isDone) linkParts.push(`<span class="project-link" style="color:var(--text-muted);">Internal project — demo unavailable</span>`);
-
-          const hasPreview = !!proj.preview_image_url;
-
-          return `
-            <article class="project-card ${!isDone ? 'is-upcoming' : ''} ${!hasPreview ? 'no-preview' : ''}">
-              <div class="project-content">
-                <div>
-                  <div class="project-meta-top">
-                    <span>PROJECT / ${num}</span>
-                    <span style="color:${statusColor}; font-weight:600;">${statusText}</span>
-                  </div>
-                  <h3 class="project-title">${proj.title || 'Untitled Project'}</h3>
-                  ${context ? `<div class="hero-subtitle" style="font-size:0.8125rem; margin-bottom:var(--space-2);">${context}</div>` : ''}
-                  <p class="project-desc">${proj.description || ''}</p>
-                  ${bullets ? `<div class="spec-label" style="margin-bottom:var(--space-2);">Technical details</div><ul style="padding-left:18px; margin-bottom:var(--space-4); font-size:0.875rem;">${bullets}</ul>` : ''}
-
-                  ${techList.length ? `
-                    <div class="project-tech">
-                      ${techList.map(t => `<span class="tech-tag">${t}</span>`).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-
-                ${linkParts.length ? `<div class="project-links">${linkParts.join('')}</div>` : ''}
-              </div>
-
-              ${hasPreview ? `
-              <div class="project-preview">
-                <img src="${proj.preview_image_url}" alt="${proj.title || 'Project preview'} screenshot" class="project-img" loading="lazy">
-              </div>` : ''}
-            </article>
-          `;
-        }).join('');
+        let html = '';
+        if (done.length) {
+          html += `<div class="project-group-title">Completed</div>`;
+          html += done.map((p, i) => renderProjectCard(p, i)).join('');
+        }
+        if (upcoming.length) {
+          html += `<div class="project-group-title">In Progress</div>`;
+          html += upcoming.map((p, i) => renderProjectCard(p, i)).join('');
+        }
+        container.innerHTML = html;
 
       } catch (err) {
         console.error('Error fetching projects:', err);
         container.innerHTML = '<p class="spec-label" style="color: var(--accent);">Unable to load projects.</p>';
       }
     }
+
 
     // 3. FETCH SKILLS
     function tierLabel(tier) {
