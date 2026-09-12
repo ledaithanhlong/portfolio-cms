@@ -168,6 +168,41 @@
       flex-direction: column;
     }
 
+    .hero-top-row {
+      display: flex;
+      align-items: stretch;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .hero-identity {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .hero-avatar {
+      width: 96px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+    .hero-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .hero-meta {
       font-family: var(--font-mono);
       font-size: 0.8125rem;
@@ -723,12 +758,17 @@
   <section class="section" aria-label="Introduction">
     <div class="container hero-grid">
       <div class="hero-main">
-        <div class="hero-meta">
-          <span>$ role --frontend</span>
-          <span class="status-badge" id="hero-status-badge"><span class="status-dot"></span> Available for Internship</span>
+        <div class="hero-top-row">
+          <div class="hero-avatar" id="hero-avatar">LL</div>
+          <div class="hero-identity">
+            <div class="hero-meta">
+              <span>$ role --frontend</span>
+              <span class="status-badge" id="hero-status-badge"><span class="status-dot"></span> Available for Internship</span>
+            </div>
+            <h1 class="hero-title" id="profile-name">Lê Đại Thanh Long</h1>
+            <h2 class="hero-subtitle" id="profile-title">Frontend Developer Intern</h2>
+          </div>
         </div>
-        <h1 class="hero-title" id="profile-name">Lê Đại Thanh Long</h1>
-        <h2 class="hero-subtitle" id="profile-title">Frontend Developer Intern</h2>
         <p class="hero-bio" id="profile-bio">
           Building responsive web experiences with React, Next.js, modern JavaScript, and clean frontend architecture.
         </p>
@@ -969,6 +1009,14 @@
           document.getElementById('profile-name').textContent = data.name;
           document.getElementById('nav-brand-name').innerHTML = `${data.name.toUpperCase()} <span>/ PORTFOLIO</span>`;
           document.getElementById('footer-copyright').textContent = `© ${new Date().getFullYear()} ${data.name}. All rights reserved.`;
+
+          const avatar = document.getElementById('hero-avatar');
+          if (data.photo_url) {
+            avatar.innerHTML = `<img src="${data.photo_url}" alt="Ảnh đại diện ${data.name}">`;
+          } else {
+            const initials = data.name.split(' ').filter(Boolean).slice(-2).map(w => w[0]).join('').toUpperCase();
+            avatar.textContent = initials;
+          }
         }
         if (data.role) document.getElementById('profile-title').textContent = data.role;
         if (data.lede) {
