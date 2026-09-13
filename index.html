@@ -493,23 +493,30 @@
     }
 
     /* SKILLS & CERTIFICATES */
+    #skills-container {
+      display: block;
+    }
+
+    .skills-tier-group {
+      display: block;
+      width: 100%;
+      margin-bottom: var(--space-5);
+    }
+    .skills-tier-group:last-child { margin-bottom: 0; }
+
     .skills-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: var(--space-2);
     }
 
-    .skill-card {
-      background: var(--surface);
+    .skill-chip {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      background: var(--bg);
       border: 1px solid var(--border);
-      padding: 0.625rem var(--space-3);
+      padding: 0.375rem 0.75rem;
       border-radius: var(--radius);
-    }
-
-    .skill-name {
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 0.9375rem;
     }
 
     .skills-tier-title {
@@ -871,7 +878,7 @@
         <span class="section-num">03 /</span>
         <h2 class="section-title">Skills & Capabilities</h2>
       </div>
-      <div class="skills-grid" id="skills-container">
+      <div id="skills-container">
         <p class="spec-label">Loading skills...</p>
       </div>
     </div>
@@ -1164,6 +1171,7 @@
     }
     function tierNote(tier) {
       return {
+        solid: 'Confidently used across multiple real projects.',
         developing: 'Used in real project work, still going deeper.',
         exposed: 'Used once in a specific project, not yet a core strength.'
       }[tier] || '';
@@ -1184,14 +1192,15 @@
           if (!items.length) return '';
           const note = tierNote(tier);
           return `
-            <div style="grid-column: 1 / -1; margin-bottom: var(--space-2);">
-              <div class="skills-tier-title ${tier === 'solid' ? 'core' : ''}">${tierLabel(tier)}</div>
-              ${note ? `<div class="spec-label" style="margin-bottom:var(--space-2);">${note}</div>` : ''}
+            <div class="skills-tier-group">
+              <div style="margin-bottom: var(--space-2);">
+                <div class="skills-tier-title ${tier === 'solid' ? 'core' : ''}">${tierLabel(tier)}</div>
+                ${note ? `<div class="spec-label" style="margin-bottom:var(--space-2);">${note}</div>` : ''}
+              </div>
+              <div class="skills-grid">
+                ${items.map(s => `<span class="skill-chip">${s.name || ''}</span>`).join('')}
+              </div>
             </div>
-            ${items.map(s => `
-              <div class="skill-card">
-                <div class="skill-name">${s.name || ''}</div>
-              </div>`).join('')}
           `;
         }).join('');
 
