@@ -123,6 +123,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-4);
     }
 
     .nav-brand {
@@ -299,6 +301,7 @@
       display: flex;
       gap: var(--space-3);
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -506,9 +509,16 @@
     .skill-name {
       font-family: var(--font-display);
       font-weight: 600;
-      font-size: 1.125rem;
-      margin-bottom: var(--space-1);
+      font-size: 0.9375rem;
     }
+
+    .skills-tier-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .skills-tier-title.core { color: var(--accent); }
 
     .skill-level {
       font-family: var(--font-mono);
@@ -697,6 +707,7 @@
       .project-preview { border-left: none; border-top: 1px solid var(--border); }
       .hero-title { font-size: 2.25rem; }
       .certificates-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-avatar { width: 80px; font-size: 1.25rem; }
     }
 
     @media (max-width: 640px) {
@@ -709,6 +720,8 @@
       .hero-title { font-size: 1.875rem; }
       .hero-cta-row { width: 100%; }
       .btn { flex: 1; }
+      .hero-top-row { gap: var(--space-3); }
+      .hero-avatar { width: 56px; font-size: 1rem; border-radius: 8px; }
 
       /* Mobile adjustment for Back to Top */
       .back-to-top {
@@ -1172,7 +1185,7 @@
           const note = tierNote(tier);
           return `
             <div style="grid-column: 1 / -1; margin-bottom: var(--space-2);">
-              <div class="cert-title" style="font-size:1rem; ${tier === 'solid' ? 'color:var(--accent);' : ''}">${tierLabel(tier)}</div>
+              <div class="skills-tier-title ${tier === 'solid' ? 'core' : ''}">${tierLabel(tier)}</div>
               ${note ? `<div class="spec-label" style="margin-bottom:var(--space-2);">${note}</div>` : ''}
             </div>
             ${items.map(s => `
