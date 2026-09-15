@@ -3,82 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quản trị Portfolio</title>
+<title>Portfolio CMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --paper:#F2EFE7; --paper-deep:#EAE5D8; --line:#D9D3C3;
-    --ink:#1B231F; --ink-soft:#5B6157; --accent:#1F7A5C;
-    --accent-soft:#E1EBE3; --card:#FBF9F4; --danger:#B0402F;
+    --ink:#1B231F; --ink-soft:#5B6157; --accent:#C1552E;
+    --accent-soft:#F3E3DA; --card:#FBF9F4; --danger:#B0402F;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'IBM Plex Sans',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;}
-  h1,h2,h3{font-family:"Space Grotesk",sans-serif;margin:0;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:14.5px;}
+  h1,h2,h3{font-family:var(--font-display);margin:0;}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
   input,textarea,select{
-    width:100%;font-family:inherit;font-size:14px;padding:8px 10px;
-    border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink);
+    width:100%;font-family:inherit;font-size:14px;padding:9px 10px;
+    border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);
     margin-bottom:10px;
   }
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
   textarea{resize:vertical;min-height:70px;}
-  label{font-size:12.5px;color:var(--ink-soft);display:block;margin-bottom:3px;}
+  label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-soft);display:block;margin-bottom:4px;}
+
   button{
-    font-family:inherit;font-size:13.5px;font-weight:500;
-    padding:8px 16px;border-radius:3px;border:1px solid var(--ink);
-    background:var(--ink);color:var(--paper);cursor:pointer;
+    font-family:var(--font-display);font-size:13.5px;font-weight:600;
+    padding:8px 16px;border-radius:4px;border:1.5px solid var(--ink);
+    background:var(--ink);color:var(--paper);cursor:pointer;transition:opacity .15s ease;
   }
   button.secondary{background:transparent;color:var(--ink);}
   button.danger{background:transparent;color:var(--danger);border-color:var(--danger);}
+  button.small{padding:5px 10px;font-size:12px;}
   button:hover{opacity:0.85;}
+  button:disabled{opacity:0.5;cursor:default;}
 
   /* ---------- Login ---------- */
   #login-view{
-    max-width:360px;margin:120px auto;padding:32px;
-    border:1px solid var(--line);background:var(--card);border-radius:4px;
+    max-width:380px;margin:14vh auto;padding:36px;
+    border:1px solid var(--line);background:var(--card);border-radius:6px;
   }
-  #login-view h1{font-size:20px;margin-bottom:20px;}
-  #login-error{color:var(--danger);font-size:13px;margin-top:6px;min-height:16px;}
+  #login-view h1{font-size:20px;margin-bottom:4px;}
+  #login-view .sub{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);margin-bottom:22px;}
+  #login-error{color:var(--danger);font-size:13px;margin-top:6px;min-height:16px;font-family:var(--font-mono);}
 
   /* ---------- App shell ---------- */
-  #app-view{display:none;}
+  #app-view{display:none;height:100vh;display:flex;flex-direction:column;}
   .topbar{
     display:flex;justify-content:space-between;align-items:center;
-    padding:16px 28px;border-bottom:1px solid var(--line);
+    padding:12px 24px;border-bottom:1px solid var(--line);background:var(--card);
+    flex:0 0 auto;
   }
-  .topbar h1{font-size:18px;}
-  .layout{display:grid;grid-template-columns:180px 1fr;min-height:calc(100vh - 57px);}
-  nav.sidebar{border-right:1px solid var(--line);padding:20px 0;}
+  .topbar-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .topbar h1{font-size:16px;letter-spacing:-0.01em;}
+  .topbar .sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .topbar-user{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);}
+
+  .layout{display:flex;flex:1 1 auto;min-height:0;}
+
+  /* Sticky/fixed-height sidebar: stays put while main content scrolls */
+  nav.sidebar{
+    width:190px;flex:0 0 auto;border-right:1px solid var(--line);
+    padding:18px 0;overflow-y:auto;
+  }
   nav.sidebar button{
     display:block;width:100%;text-align:left;background:none;border:none;
-    color:var(--ink-soft);padding:10px 24px;font-size:14px;border-radius:0;
+    color:var(--ink-soft);padding:9px 20px;font-size:13px;font-family:var(--font-mono);
+    letter-spacing:0.02em;border-radius:0;border-left:2px solid transparent;
   }
-  nav.sidebar button.active{color:var(--ink);font-weight:600;background:var(--accent-soft);border-left:2px solid var(--accent);}
-  main{padding:28px 32px;max-width:760px;}
-  .tab-panel{display:none;}
+  nav.sidebar button.active{color:var(--ink);font-weight:600;background:var(--accent-soft);border-left-color:var(--accent);}
+  nav.sidebar button:hover:not(.active){color:var(--ink);}
+
+  .content-area{flex:1 1 auto;min-width:0;overflow-y:auto;padding:26px 30px;}
+  .tab-panel{display:none;height:100%;}
   .tab-panel.active{display:block;}
+
+  .panel-header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap;}
+  .panel-header h2{font-size:19px;}
+  .panel-header .desc{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+
+  /* ---------- List + Editor split (reusable for Skills/Projects/Certificates) ---------- */
+  .split-panel{
+    display:flex; gap:24px; align-items:flex-start; height:calc(100% - 64px);
+  }
+  .split-list{
+    flex:1 1 40%; min-width:260px; max-width:420px;
+    max-height:100%; overflow-y:auto; padding-right:4px;
+  }
+  .split-editor{
+    flex:1 1 60%; min-width:0;
+    max-height:100%; overflow-y:auto;
+    border:1px solid var(--line); background:var(--card); border-radius:4px; padding:20px;
+  }
+  .split-editor h3{font-size:14px;margin-bottom:14px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;color:var(--accent);}
+
+  @media (max-width:1024px){
+    .split-panel{flex-direction:column;height:auto;}
+    .split-list, .split-editor{max-width:none;width:100%;max-height:none;}
+  }
+
   .entry-card{
-    border:1px solid var(--line);background:var(--card);border-radius:3px;
-    padding:16px 18px;margin-bottom:14px;
+    border:1px solid var(--line);background:var(--card);border-radius:4px;
+    padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;
   }
-  .entry-card .row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
-  .entry-card .row h3{font-size:15px;}
-  .entry-card .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
-  .entry-actions{display:flex;gap:8px;margin-top:10px;}
-  .form-box{
-    border:1px dashed var(--line);border-radius:3px;padding:18px;margin-top:18px;background:#fff;
-  }
-  .form-box h3{font-size:14.5px;margin-bottom:12px;}
+  .entry-card.selected{border-color:var(--accent);background:var(--accent-soft);}
+  .entry-main h3{font-size:13.5px;font-weight:600;}
+  .entry-main .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .entry-actions{display:flex;gap:6px;flex:0 0 auto;}
+
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .save-row{display:flex;gap:10px;margin-top:4px;}
-  .save-msg{font-size:13px;color:var(--accent);margin-left:6px;align-self:center;}
+  .save-row{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap;}
+  .save-msg{font-size:12.5px;color:var(--accent);font-family:var(--font-mono);}
+
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;}
+  .overview-card{border:1px solid var(--line);background:var(--card);border-radius:4px;padding:16px;}
+  .overview-card .num{font-family:var(--font-display);font-size:1.7rem;font-weight:700;color:var(--accent);}
+  .overview-card .label{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;margin-top:4px;}
+
+  .helper-box{background:var(--accent-soft);border:1px solid var(--line);border-radius:4px;padding:14px 16px;font-size:13.5px;color:var(--ink);}
+  .profile-form-wrap{max-width:560px;}
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    nav.sidebar{
+      width:auto;border-right:none;border-bottom:1px solid var(--line);padding:8px;
+      display:flex;overflow-x:auto;gap:4px;flex:0 0 auto;
+    }
+    nav.sidebar button{width:auto;white-space:nowrap;padding:8px 14px;border-left:none;border-bottom:2px solid transparent;}
+    nav.sidebar button.active{border-left:none;border-bottom-color:var(--accent);}
+    .content-area{padding:18px;}
+    .two-col{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
 
 <div id="login-view">
-  <h1>Đăng nhập quản trị</h1>
+  <h1>Portfolio CMS</h1>
+  <div class="sub">Content Management System</div>
   <label>Email</label>
   <input type="email" id="login-email" placeholder="email@vidu.com">
   <label>Mật khẩu</label>
@@ -89,130 +158,169 @@
 
 <div id="app-view">
   <div class="topbar">
-    <h1>Quản trị Portfolio</h1>
-    <button class="secondary" id="logout-btn">Đăng xuất</button>
+    <div class="topbar-title">
+      <h1>PORTFOLIO CMS</h1>
+      <span class="sub">Content Management System</span>
+    </div>
+    <div class="topbar-actions">
+      <span class="topbar-user" id="topbar-user"></span>
+      <button class="secondary" id="logout-btn">Đăng xuất</button>
+    </div>
   </div>
   <div class="layout">
     <nav class="sidebar">
-      <button class="tab-btn active" data-tab="profile">Thông tin chung</button>
-      <button class="tab-btn" data-tab="skillbars">Thanh kỹ năng</button>
-      <button class="tab-btn" data-tab="skills">Kỹ năng (chip)</button>
-      <button class="tab-btn" data-tab="projects">Dự án</button>
-      <button class="tab-btn" data-tab="certificates">Chứng chỉ</button>
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="profile">Profile</button>
+      <button class="tab-btn" data-tab="availability">Availability</button>
+      <button class="tab-btn" data-tab="skills">Skills</button>
+      <button class="tab-btn" data-tab="projects">Projects</button>
+      <button class="tab-btn" data-tab="certificates">Certificates</button>
     </nav>
-    <main>
+    <div class="content-area">
 
-      <div class="tab-panel active" id="tab-profile">
-        <h2 style="margin-bottom:16px;">Thông tin chung</h2>
-        <label>Ảnh đại diện (tùy chọn — nếu bỏ trống sẽ hiện chữ cái đầu tên)</label>
-        <input id="pf-new-photo" type="file" accept="image/*">
-        <img id="pf-current-photo" style="display:none;width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line);margin-bottom:10px;">
-        <label>Họ tên</label><input id="pf-name">
-        <label>Vai trò / dòng phụ đề</label><input id="pf-role">
-        <label>Giới thiệu ngắn</label><textarea id="pf-lede"></textarea>
-        <label>Email</label><input id="pf-email">
-        <label>Link GitHub</label><input id="pf-github">
-        <label>Link LinkedIn</label><input id="pf-linkedin">
-        <label>Địa điểm</label><input id="pf-location">
-        <div class="save-row">
-          <button id="pf-save">Lưu thay đổi</button>
-          <span class="save-msg" id="pf-msg"></span>
+      <!-- ===================== OVERVIEW (UI only, Phase 2A) ===================== -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="panel-header"><div><h2>Overview</h2><div class="desc">Tổng quan nhanh về nội dung portfolio.</div></div></div>
+        <div class="overview-grid">
+          <div class="overview-card"><div class="num">–</div><div class="label">Projects</div></div>
+          <div class="overview-card"><div class="num">–</div><div class="label">Certificates</div></div>
+          <div class="overview-card"><div class="num">–</div><div class="label">Skills</div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Số liệu thực tế sẽ kết nối ở Phase 2B — hiện tại đây chỉ là khung giao diện.</p>
+      </div>
+
+      <!-- ===================== AVAILABILITY (UI only, Phase 2A) ===================== -->
+      <div class="tab-panel" id="tab-availability">
+        <div class="panel-header"><div><h2>Availability</h2><div class="desc">Trạng thái tìm việc hiển thị ở Hero của portfolio.</div></div></div>
+        <div class="helper-box">
+          Availability management will be implemented in Phase 2B — cần thêm cột <code>availability_status</code> vào bảng <code>profile</code> trên Supabase trước.
         </div>
       </div>
 
-      <div class="tab-panel" id="tab-skillbars">
-        <h2 style="margin-bottom:16px;">Thanh kỹ năng (% trên đầu trang)</h2>
-        <div id="skillbars-list"></div>
-        <div class="form-box">
-          <h3>Thêm thanh kỹ năng mới</h3>
-          <label>Tên kỹ năng</label><input id="sb-new-label">
-          <label>Phần trăm (0-100)</label><input id="sb-new-pct" type="number" min="0" max="100">
-          <label>Thứ tự hiển thị</label><input id="sb-new-order" type="number" value="0">
-          <button id="sb-new-save">Thêm</button>
+      <!-- ===================== PROFILE (single-record form, logic giữ nguyên) ===================== -->
+      <div class="tab-panel" id="tab-profile">
+        <div class="panel-header"><div><h2>Profile</h2><div class="desc">Thông tin hiển thị ở Hero và Footer của portfolio.</div></div></div>
+        <div class="profile-form-wrap">
+          <label>Ảnh đại diện (tùy chọn — nếu bỏ trống sẽ hiện chữ cái đầu tên)</label>
+          <input id="pf-new-photo" type="file" accept="image/*">
+          <img id="pf-current-photo" style="display:none;width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line);margin-bottom:10px;">
+          <label>Họ tên</label><input id="pf-name">
+          <label>Vai trò / dòng phụ đề</label><input id="pf-role">
+          <label>Giới thiệu ngắn</label><textarea id="pf-lede"></textarea>
+          <label>Email</label><input id="pf-email">
+          <label>Link GitHub</label><input id="pf-github">
+          <label>Link LinkedIn</label><input id="pf-linkedin">
+          <label>Địa điểm</label><input id="pf-location">
+          <div class="save-row">
+            <button id="pf-save">Lưu thay đổi</button>
+            <span class="save-msg" id="pf-msg"></span>
+          </div>
         </div>
       </div>
 
+      <!-- ===================== SKILLS (List + Editor split) ===================== -->
       <div class="tab-panel" id="tab-skills">
-        <h2 style="margin-bottom:16px;">Kỹ năng dạng chip (3 tầng)</h2>
-        <div id="skills-list"></div>
-        <div class="form-box">
-          <h3>Thêm kỹ năng mới</h3>
-          <label>Tên kỹ năng</label><input id="sk-new-name">
-          <label>Tầng</label>
-          <select id="sk-new-tier">
-            <option value="solid">Vững</option>
-            <option value="developing">Đang phát triển</option>
-            <option value="exposed">Đã tiếp xúc</option>
-          </select>
-          <label>Thứ tự hiển thị</label><input id="sk-new-order" type="number" value="0">
-          <button id="sk-new-save">Thêm</button>
+        <div class="panel-header">
+          <div><h2>Skills</h2><div class="desc">Kỹ năng dạng chip, phân theo 3 tầng.</div></div>
+          <button id="sk-add-new" class="small">+ Thêm mới</button>
         </div>
-      </div>
-
-      <div class="tab-panel" id="tab-projects">
-        <h2 style="margin-bottom:16px;">Dự án</h2>
-        <div id="projects-list"></div>
-        <div class="form-box">
-          <h3 id="pj-form-title">Thêm dự án mới</h3>
-          <label>Tên dự án</label><input id="pj-new-title">
-          <div class="two-col">
-            <div><label>Thời gian (vd: 03/2025 – 06/2025)</label><input id="pj-new-dates"></div>
-            <div><label>Trạng thái</label>
-              <select id="pj-new-status"><option value="done">Đã xong</option><option value="upcoming">Đang thực hiện</option></select>
+        <div class="split-panel">
+          <div class="split-list" id="skills-list"></div>
+          <div class="split-editor">
+            <h3 id="sk-form-title">Thêm kỹ năng mới</h3>
+            <label>Tên kỹ năng</label><input id="sk-new-name">
+            <label>Tầng</label>
+            <select id="sk-new-tier">
+              <option value="solid">Vững</option>
+              <option value="developing">Đang phát triển</option>
+              <option value="exposed">Đã tiếp xúc</option>
+            </select>
+            <label>Thứ tự hiển thị</label><input id="sk-new-order" type="number" value="0">
+            <div class="save-row">
+              <button id="sk-new-save">Lưu</button>
+              <button class="secondary" id="sk-cancel-edit" style="display:none;">Hủy</button>
+              <span class="save-msg" id="sk-msg"></span>
             </div>
           </div>
-          <label>Vai trò / ghi chú</label><input id="pj-new-role">
-          <label>Mô tả</label><textarea id="pj-new-desc"></textarea>
-          <label>Các gạch đầu dòng (mỗi dòng một ý)</label><textarea id="pj-new-bullets"></textarea>
-          <label>Công nghệ dùng (mỗi dòng một mục)</label><textarea id="pj-new-stack"></textarea>
-          <label>Ảnh chụp màn hình dự án (tùy chọn — hiện như khung preview trên trang chủ)</label>
-          <input id="pj-new-image" type="file" accept="image/*">
-          <img id="pj-current-image" style="display:none;max-width:220px;border:1px solid var(--line);border-radius:3px;margin-bottom:10px;">
-          <div class="two-col">
-            <div><label>Link demo</label><input id="pj-new-demo"></div>
-            <div><label>Link mã nguồn</label><input id="pj-new-repo"></div>
-          </div>
-          <label>Thứ tự hiển thị</label><input id="pj-new-order" type="number" value="0">
-          <div class="save-row">
-            <button id="pj-new-save">Thêm dự án</button>
-            <button class="secondary" id="pj-cancel-edit" style="display:none;">Hủy sửa</button>
-            <span class="save-msg" id="pj-msg"></span>
+        </div>
+      </div>
+
+      <!-- ===================== PROJECTS (List + Editor split) ===================== -->
+      <div class="tab-panel" id="tab-projects">
+        <div class="panel-header">
+          <div><h2>Projects</h2><div class="desc">Quản lý dự án hiển thị trên portfolio.</div></div>
+          <button id="pj-add-new" class="small">+ Thêm mới</button>
+        </div>
+        <div class="split-panel">
+          <div class="split-list" id="projects-list"></div>
+          <div class="split-editor">
+            <h3 id="pj-form-title">Thêm dự án mới</h3>
+            <label>Tên dự án</label><input id="pj-new-title">
+            <div class="two-col">
+              <div><label>Thời gian</label><input id="pj-new-dates" placeholder="03/2025 – 06/2025"></div>
+              <div><label>Trạng thái</label>
+                <select id="pj-new-status"><option value="done">Đã xong</option><option value="upcoming">Đang thực hiện</option></select>
+              </div>
+            </div>
+            <label>Vai trò / ghi chú</label><input id="pj-new-role">
+            <label>Mô tả</label><textarea id="pj-new-desc"></textarea>
+            <label>Các gạch đầu dòng (mỗi dòng một ý)</label><textarea id="pj-new-bullets"></textarea>
+            <label>Công nghệ dùng (mỗi dòng một mục)</label><textarea id="pj-new-stack"></textarea>
+            <label>Ảnh chụp màn hình dự án (tùy chọn)</label>
+            <input id="pj-new-image" type="file" accept="image/*">
+            <img id="pj-current-image" style="display:none;max-width:220px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px;">
+            <div class="two-col">
+              <div><label>Link demo</label><input id="pj-new-demo"></div>
+              <div><label>Link mã nguồn</label><input id="pj-new-repo"></div>
+            </div>
+            <label>Thứ tự hiển thị</label><input id="pj-new-order" type="number" value="0">
+            <div class="save-row">
+              <button id="pj-new-save">Thêm dự án</button>
+              <button class="secondary" id="pj-cancel-edit" style="display:none;">Hủy sửa</button>
+              <span class="save-msg" id="pj-msg"></span>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- ===================== CERTIFICATES (List + Editor split) ===================== -->
       <div class="tab-panel" id="tab-certificates">
-        <h2 style="margin-bottom:16px;">Chứng chỉ</h2>
-        <div id="certificates-list"></div>
-        <div class="form-box">
-          <h3 id="ct-form-title">Thêm chứng chỉ mới</h3>
-          <label>Tên chứng chỉ</label><input id="ct-new-name">
-          <label>Đơn vị cấp</label><input id="ct-new-issuer">
-          <label>Ảnh chứng chỉ (tùy chọn)</label>
-          <input id="ct-new-image" type="file" accept="image/*">
-          <img id="ct-current-image" style="display:none;max-width:120px;border:1px solid var(--line);border-radius:3px;margin-bottom:10px;">
-          <label>Link chứng nhận của bạn (vd: link Coursera verify)</label>
-          <input id="ct-new-credential-url" placeholder="https://...">
-          <label>Link trang gốc của đơn vị cấp chứng chỉ</label>
-          <input id="ct-new-issuer-url" placeholder="https://...">
-          <label>Thứ tự hiển thị</label><input id="ct-new-order" type="number" value="0">
-          <div class="save-row">
-            <button id="ct-new-save">Thêm</button>
-            <button class="secondary" id="ct-cancel-edit" style="display:none;">Hủy sửa</button>
-            <span class="save-msg" id="ct-msg"></span>
+        <div class="panel-header">
+          <div><h2>Certificates</h2><div class="desc">Quản lý chứng chỉ hiển thị trên portfolio.</div></div>
+          <button id="ct-add-new" class="small">+ Thêm mới</button>
+        </div>
+        <div class="split-panel">
+          <div class="split-list" id="certificates-list"></div>
+          <div class="split-editor">
+            <h3 id="ct-form-title">Thêm chứng chỉ mới</h3>
+            <label>Tên chứng chỉ</label><input id="ct-new-name">
+            <label>Đơn vị cấp</label><input id="ct-new-issuer">
+            <label>Ảnh chứng chỉ (tùy chọn)</label>
+            <input id="ct-new-image" type="file" accept="image/*">
+            <img id="ct-current-image" style="display:none;max-width:120px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px;">
+            <label>Link chứng nhận của bạn</label>
+            <input id="ct-new-credential-url" placeholder="https://...">
+            <label>Link trang gốc của đơn vị cấp</label>
+            <input id="ct-new-issuer-url" placeholder="https://...">
+            <label>Thứ tự hiển thị</label><input id="ct-new-order" type="number" value="0">
+            <div class="save-row">
+              <button id="ct-new-save">Thêm</button>
+              <button class="secondary" id="ct-cancel-edit" style="display:none;">Hủy sửa</button>
+              <span class="save-msg" id="ct-msg"></span>
+            </div>
           </div>
         </div>
       </div>
 
-    </main>
+    </div>
   </div>
 </div>
 
 <script>
-  // ====== ĐIỀN THÔNG TIN SUPABASE CỦA BẠN VÀO ĐÂY (giống file portfolio) ======
+  // ====== SUPABASE CONFIG — giữ nguyên, không đổi ======
   const SUPABASE_URL = "https://yfbowrxiyhgpailnadvz.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmYm93cnhpeWhncGFpbG5hZHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMzU0NzUsImV4cCI6MjEwMzgxMTQ3NX0.0gzpL6aZQgg_AONmirQCMeHc_3T_40U_Ib2_jgNXrc0";
-  // =============================================================================
+  // =======================================================
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -235,12 +343,15 @@
 
   async function checkSession(){
     const { data } = await sb.auth.getSession();
-    if (data.session) showApp();
+    if (data.session) showApp(data.session);
   }
 
-  function showApp(){
+  function showApp(session){
     document.getElementById('login-view').style.display = 'none';
-    document.getElementById('app-view').style.display = 'block';
+    document.getElementById('app-view').style.display = 'flex';
+    if (session?.user?.email){
+      document.getElementById('topbar-user').textContent = session.user.email;
+    }
     loadAllTabs();
   }
 
@@ -256,7 +367,6 @@
 
   function loadAllTabs(){
     loadProfile();
-    loadSkillBars();
     loadSkills();
     loadProjects();
     loadCertificates();
@@ -315,108 +425,95 @@
     }
   };
 
-  // ---------- Skill bars ----------
-  async function loadSkillBars(){
-    const { data } = await sb.from('skill_bars').select('*').order('sort_order');
-    document.getElementById('skillbars-list').innerHTML = data.map(s => `
-      <div class="entry-card" data-id="${s.id}">
-        <div class="row">
-          <div><h3>${s.label}</h3><div class="meta">${s.pct}% · thứ tự ${s.sort_order}</div></div>
-        </div>
-        <div class="entry-actions">
-          <button class="secondary edit-sb" data-id="${s.id}">Sửa</button>
-          <button class="danger del-sb" data-id="${s.id}">Xóa</button>
-        </div>
-      </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có mục nào.</p>";
+  // ---------- Skills (List + Editor split) ----------
+  let editingSkillId = null;
+  let currentSkillList = [];
+  const TIER_LABEL = { solid: 'Vững', developing: 'Đang phát triển', exposed: 'Đã tiếp xúc' };
 
-    document.querySelectorAll('.del-sb').forEach(b => b.onclick = async () => {
-      if (!confirm('Xóa thanh kỹ năng này?')) return;
-      await sb.from('skill_bars').delete().eq('id', b.dataset.id);
-      loadSkillBars();
-    });
-    document.querySelectorAll('.edit-sb').forEach(b => b.onclick = async () => {
-      const row = data.find(x => x.id == b.dataset.id);
-      const label = prompt('Tên kỹ năng:', row.label);
-      if (label === null) return;
-      const pct = prompt('Phần trăm:', row.pct);
-      if (pct === null) return;
-      await sb.from('skill_bars').update({ label, pct: parseInt(pct) }).eq('id', row.id);
-      loadSkillBars();
-    });
-  }
-  document.getElementById('sb-new-save').onclick = async () => {
-    const label = document.getElementById('sb-new-label').value.trim();
-    const pct = parseInt(document.getElementById('sb-new-pct').value);
-    const sort_order = parseInt(document.getElementById('sb-new-order').value) || 0;
-    if (!label || isNaN(pct)) return alert('Điền đủ tên và phần trăm.');
-    await sb.from('skill_bars').insert({ label, pct, sort_order });
-    document.getElementById('sb-new-label').value = '';
-    document.getElementById('sb-new-pct').value = '';
-    loadSkillBars();
-  };
-
-  // ---------- Skills (chips) ----------
   async function loadSkills(){
     const { data } = await sb.from('skills').select('*').order('sort_order');
-    const tierLabel = { solid: 'Vững', developing: 'Đang phát triển', exposed: 'Đã tiếp xúc' };
-    document.getElementById('skills-list').innerHTML = data.map(s => `
-      <div class="entry-card" data-id="${s.id}">
-        <div class="row">
-          <div><h3>${s.name}</h3><div class="meta">${tierLabel[s.tier]} · thứ tự ${s.sort_order}</div></div>
+    currentSkillList = data;
+    document.getElementById('skills-list').innerHTML = data.length ? data.map(s => `
+      <div class="entry-card ${editingSkillId == s.id ? 'selected' : ''}" data-id="${s.id}">
+        <div class="entry-main">
+          <h3>${s.name}</h3>
+          <div class="meta">${TIER_LABEL[s.tier]} · thứ tự ${s.sort_order}</div>
         </div>
         <div class="entry-actions">
-          <button class="secondary edit-sk" data-id="${s.id}">Sửa</button>
-          <button class="danger del-sk" data-id="${s.id}">Xóa</button>
+          <button class="secondary small edit-sk" data-id="${s.id}">Sửa</button>
+          <button class="danger small del-sk" data-id="${s.id}">Xóa</button>
         </div>
-      </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có mục nào.</p>";
+      </div>`).join("") : "<p style='color:var(--ink-soft);font-size:13.5px;'>Chưa có kỹ năng nào.</p>";
 
     document.querySelectorAll('.del-sk').forEach(b => b.onclick = async () => {
       if (!confirm('Xóa kỹ năng này?')) return;
       await sb.from('skills').delete().eq('id', b.dataset.id);
+      if (editingSkillId == b.dataset.id) resetSkillForm();
       loadSkills();
     });
-    document.querySelectorAll('.edit-sk').forEach(b => b.onclick = async () => {
-      const row = data.find(x => x.id == b.dataset.id);
-      const name = prompt('Tên kỹ năng:', row.name);
-      if (name === null) return;
-      const tier = prompt('Tầng (gõ đúng một trong 3: solid / developing / exposed):', row.tier);
-      if (tier === null) return;
-      if (!['solid','developing','exposed'].includes(tier)){
-        alert('Tầng không hợp lệ, phải là solid, developing hoặc exposed.');
-        return;
-      }
-      await sb.from('skills').update({ name, tier }).eq('id', row.id);
+    document.querySelectorAll('.edit-sk').forEach(b => b.onclick = () => {
+      const row = currentSkillList.find(x => x.id == b.dataset.id);
+      editingSkillId = row.id;
+      document.getElementById('sk-form-title').textContent = 'Sửa kỹ năng';
+      document.getElementById('sk-new-name').value = row.name || '';
+      document.getElementById('sk-new-tier').value = row.tier;
+      document.getElementById('sk-new-order').value = row.sort_order || 0;
+      document.getElementById('sk-new-save').textContent = 'Cập nhật';
+      document.getElementById('sk-cancel-edit').style.display = 'inline-block';
       loadSkills();
     });
   }
+
+  function resetSkillForm(){
+    editingSkillId = null;
+    document.getElementById('sk-form-title').textContent = 'Thêm kỹ năng mới';
+    document.getElementById('sk-new-name').value = '';
+    document.getElementById('sk-new-tier').value = 'solid';
+    document.getElementById('sk-new-order').value = 0;
+    document.getElementById('sk-new-save').textContent = 'Lưu';
+    document.getElementById('sk-cancel-edit').style.display = 'none';
+    loadSkills();
+  }
+  document.getElementById('sk-cancel-edit').onclick = resetSkillForm;
+  document.getElementById('sk-add-new').onclick = resetSkillForm;
+
   document.getElementById('sk-new-save').onclick = async () => {
     const name = document.getElementById('sk-new-name').value.trim();
     const tier = document.getElementById('sk-new-tier').value;
     const sort_order = parseInt(document.getElementById('sk-new-order').value) || 0;
     if (!name) return alert('Điền tên kỹ năng.');
-    await sb.from('skills').insert({ name, tier, sort_order });
-    document.getElementById('sk-new-name').value = '';
-    loadSkills();
+    try {
+      if (editingSkillId){
+        const { error } = await sb.from('skills').update({ name, tier, sort_order }).eq('id', editingSkillId);
+        if (error) throw error;
+      } else {
+        const { error } = await sb.from('skills').insert({ name, tier, sort_order });
+        if (error) throw error;
+      }
+      resetSkillForm();
+    } catch (err) {
+      alert('Lỗi khi lưu: ' + err.message);
+    }
   };
 
-  // ---------- Projects ----------
+  // ---------- Projects (List + Editor split) ----------
   let editingProjectId = null;
   let currentProjectList = [];
 
   async function loadProjects(){
     const { data } = await sb.from('projects').select('*').order('sort_order');
     currentProjectList = data;
-    document.getElementById('projects-list').innerHTML = data.map(p => `
-      <div class="entry-card" data-id="${p.id}">
-        <div class="row">
-          ${p.preview_image_url ? `<img src="${p.preview_image_url}" alt="" style="width:64px;height:40px;object-fit:cover;border:1px solid var(--line);border-radius:3px;flex:0 0 auto;">` : ''}
-          <div style="flex:1;"><h3>${p.title}</h3><div class="meta">${p.status === 'done' ? 'Đã xong' : 'Đang thực hiện'} · ${p.date_range || ''}</div></div>
+    document.getElementById('projects-list').innerHTML = data.length ? data.map(p => `
+      <div class="entry-card ${editingProjectId == p.id ? 'selected' : ''}" data-id="${p.id}">
+        <div class="entry-main">
+          <h3>${p.title}</h3>
+          <div class="meta">${p.status === 'done' ? 'Đã xong' : 'Đang thực hiện'} · ${p.date_range || ''}</div>
         </div>
         <div class="entry-actions">
-          <button class="secondary edit-pj" data-id="${p.id}">Sửa</button>
-          <button class="danger del-pj" data-id="${p.id}">Xóa</button>
+          <button class="secondary small edit-pj" data-id="${p.id}">Sửa</button>
+          <button class="danger small del-pj" data-id="${p.id}">Xóa</button>
         </div>
-      </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có dự án nào.</p>";
+      </div>`).join("") : "<p style='color:var(--ink-soft);font-size:13.5px;'>Chưa có dự án nào.</p>";
 
     document.querySelectorAll('.del-pj').forEach(b => b.onclick = async () => {
       if (!confirm('Xóa dự án này?')) return;
@@ -428,6 +525,7 @@
         } catch(e) { console.warn('Không xóa được ảnh cũ trên storage', e); }
       }
       await sb.from('projects').delete().eq('id', b.dataset.id);
+      if (editingProjectId == b.dataset.id) resetProjectForm();
       loadProjects();
     });
 
@@ -451,7 +549,7 @@
       else { pjPreview.style.display = 'none'; }
       document.getElementById('pj-new-save').textContent = 'Cập nhật dự án';
       document.getElementById('pj-cancel-edit').style.display = 'inline-block';
-      document.getElementById('tab-projects').scrollIntoView({ behavior: 'smooth' });
+      loadProjects();
     });
   }
 
@@ -465,8 +563,10 @@
     document.getElementById('pj-current-image').style.display = 'none';
     document.getElementById('pj-new-save').textContent = 'Thêm dự án';
     document.getElementById('pj-cancel-edit').style.display = 'none';
+    loadProjects();
   }
   document.getElementById('pj-cancel-edit').onclick = resetProjectForm;
+  document.getElementById('pj-add-new').onclick = resetProjectForm;
 
   document.getElementById('pj-new-save').onclick = async () => {
     const title = document.getElementById('pj-new-title').value.trim();
@@ -510,7 +610,6 @@
       }
       if (error) throw error;
       resetProjectForm();
-      loadProjects();
     } catch (err) {
       alert('Lỗi khi lưu: ' + err.message);
     } finally {
@@ -519,32 +618,24 @@
     }
   };
 
-  // ---------- Certificates ----------
+  // ---------- Certificates (List + Editor split) ----------
   let editingCertId = null;
   let currentCertList = [];
 
   async function loadCertificates(){
     const { data } = await sb.from('certificates').select('*').order('sort_order');
     currentCertList = data;
-    document.getElementById('certificates-list').innerHTML = data.map(c => `
-      <div class="entry-card" data-id="${c.id}">
-        <div class="row">
-          ${c.image_url ? `<img src="${c.image_url}" alt="" style="width:48px;height:48px;object-fit:cover;border:1px solid var(--line);border-radius:3px;">` : ''}
-          <div style="flex:1;">
-            <h3>${c.name}</h3>
-            <div class="meta">${c.issuer}</div>
-            <div class="meta">
-              ${c.credential_url ? `<a href="${c.credential_url}" target="_blank">Link chứng nhận</a>` : ''}
-              ${c.credential_url && c.issuer_url ? ' · ' : ''}
-              ${c.issuer_url ? `<a href="${c.issuer_url}" target="_blank">Trang đơn vị cấp</a>` : ''}
-            </div>
-          </div>
+    document.getElementById('certificates-list').innerHTML = data.length ? data.map(c => `
+      <div class="entry-card ${editingCertId == c.id ? 'selected' : ''}" data-id="${c.id}">
+        <div class="entry-main">
+          <h3>${c.name}</h3>
+          <div class="meta">${c.issuer || ''}</div>
         </div>
         <div class="entry-actions">
-          <button class="secondary edit-ct" data-id="${c.id}">Sửa</button>
-          <button class="danger del-ct" data-id="${c.id}">Xóa</button>
+          <button class="secondary small edit-ct" data-id="${c.id}">Sửa</button>
+          <button class="danger small del-ct" data-id="${c.id}">Xóa</button>
         </div>
-      </div>`).join("") || "<p style='color:var(--ink-soft);font-size:14px;'>Chưa có chứng chỉ nào.</p>";
+      </div>`).join("") : "<p style='color:var(--ink-soft);font-size:13.5px;'>Chưa có chứng chỉ nào.</p>";
 
     document.querySelectorAll('.del-ct').forEach(b => b.onclick = async () => {
       if (!confirm('Xóa chứng chỉ này?')) return;
@@ -556,6 +647,7 @@
         } catch(e) { console.warn('Không xóa được ảnh cũ trên storage', e); }
       }
       await sb.from('certificates').delete().eq('id', b.dataset.id);
+      if (editingCertId == b.dataset.id) resetCertForm();
       loadCertificates();
     });
 
@@ -574,7 +666,7 @@
       else { preview.style.display = 'none'; }
       document.getElementById('ct-new-save').textContent = 'Cập nhật chứng chỉ';
       document.getElementById('ct-cancel-edit').style.display = 'inline-block';
-      document.getElementById('tab-certificates').scrollIntoView({ behavior: 'smooth' });
+      loadCertificates();
     });
   }
 
@@ -590,8 +682,10 @@
     document.getElementById('ct-current-image').style.display = 'none';
     document.getElementById('ct-new-save').textContent = 'Thêm';
     document.getElementById('ct-cancel-edit').style.display = 'none';
+    loadCertificates();
   }
   document.getElementById('ct-cancel-edit').onclick = resetCertForm;
+  document.getElementById('ct-add-new').onclick = resetCertForm;
 
   async function uploadImage(bucket, file){
     const path = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
@@ -637,7 +731,6 @@
       }
 
       resetCertForm();
-      loadCertificates();
     } catch (err) {
       alert('Lỗi khi lưu: ' + err.message);
     } finally {
