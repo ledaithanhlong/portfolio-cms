@@ -128,7 +128,54 @@
   .overview-card .label{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;margin-top:4px;}
 
   .helper-box{background:var(--accent-soft);border:1px solid var(--line);border-radius:4px;padding:14px 16px;font-size:13.5px;color:var(--ink);}
-  .profile-form-wrap{max-width:560px;}
+  .profile-form-wrap{
+    width:100%;
+    max-width:none;
+  }
+
+  .profile-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0 20px;
+  }
+
+  .profile-field{
+    min-width:0;
+  }
+
+  .profile-field.full{
+    grid-column:1 / -1;
+  }
+
+  .profile-photo-field{
+    grid-column:1 / -1;
+  }
+
+  .profile-photo-preview{
+    display:block;
+    width:72px;
+    height:72px;
+    object-fit:cover;
+    border-radius:50%;
+    border:1px solid var(--line);
+    margin:2px 0 14px;
+  }
+
+  .profile-form-wrap textarea{
+    min-height:120px;
+  }
+
+  @media (max-width:700px){
+    .profile-grid{
+      grid-template-columns:1fr;
+      gap:0;
+    }
+
+    .profile-field.full,
+    .profile-photo-field{
+      grid-column:auto;
+    }
+  }
 
   @media (max-width:900px){
     .layout{flex-direction:column;}
@@ -201,16 +248,56 @@
       <div class="tab-panel" id="tab-profile">
         <div class="panel-header"><div><h2>Profile</h2><div class="desc">Thông tin hiển thị ở Hero và Footer của portfolio.</div></div></div>
         <div class="profile-form-wrap">
-          <label>Ảnh đại diện (tùy chọn — nếu bỏ trống sẽ hiện chữ cái đầu tên)</label>
-          <input id="pf-new-photo" type="file" accept="image/*">
-          <img id="pf-current-photo" style="display:none;width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--line);margin-bottom:10px;">
-          <label>Họ tên</label><input id="pf-name">
-          <label>Vai trò / dòng phụ đề</label><input id="pf-role">
-          <label>Giới thiệu ngắn</label><textarea id="pf-lede"></textarea>
-          <label>Email</label><input id="pf-email">
-          <label>Link GitHub</label><input id="pf-github">
-          <label>Link LinkedIn</label><input id="pf-linkedin">
-          <label>Địa điểm</label><input id="pf-location">
+          <div class="profile-grid">
+
+            <div class="profile-photo-field">
+              <label>Ảnh đại diện (tùy chọn — nếu bỏ trống sẽ hiện chữ cái đầu tên)</label>
+              <input id="pf-new-photo" type="file" accept="image/*">
+
+              <img
+                id="pf-current-photo"
+                class="profile-photo-preview"
+                style="display:none;"
+              >
+            </div>
+
+            <div class="profile-field">
+              <label>Họ tên</label>
+              <input id="pf-name">
+            </div>
+
+            <div class="profile-field">
+              <label>Vai trò / dòng phụ đề</label>
+              <input id="pf-role">
+            </div>
+
+            <div class="profile-field full">
+              <label>Giới thiệu ngắn</label>
+              <textarea id="pf-lede"></textarea>
+            </div>
+
+            <div class="profile-field">
+              <label>Email</label>
+              <input id="pf-email">
+            </div>
+
+            <div class="profile-field">
+              <label>Địa điểm</label>
+              <input id="pf-location">
+            </div>
+
+            <div class="profile-field">
+              <label>Link GitHub</label>
+              <input id="pf-github">
+            </div>
+
+            <div class="profile-field">
+              <label>Link LinkedIn</label>
+              <input id="pf-linkedin">
+            </div>
+
+          </div>
+
           <div class="save-row">
             <button id="pf-save">Lưu thay đổi</button>
             <span class="save-msg" id="pf-msg"></span>
