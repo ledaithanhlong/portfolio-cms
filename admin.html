@@ -45,10 +45,74 @@
   button:disabled{opacity:0.5;cursor:default;}
 
   /* ---------- Login ---------- */
+  /* ---------- Login ---------- */
   #login-view{
-    max-width:380px;margin:14vh auto;padding:36px;
-    border:1px solid var(--line);background:var(--card);border-radius:6px;
+    width:min(100% - 32px, 460px);
+    margin:12vh auto 0;
+    padding:40px;
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:4px;
   }
+
+  #login-view h1{
+    font-family:var(--font-display);
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin:0;
+  }
+
+  #login-view .login-brand{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--accent);
+    letter-spacing:0.04em;
+    margin-top:4px;
+    margin-bottom:36px;
+  }
+
+  #login-view .login-heading{
+    font-family:var(--font-display);
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+
+  #login-view .login-description{
+    color:var(--ink-soft);
+    font-size:13.5px;
+    margin-bottom:24px;
+  }
+
+  #login-view label{
+    margin-top:14px;
+  }
+
+  #login-view input{
+    margin-bottom:4px;
+  }
+
+  #login-view #login-btn{
+    width:100%;
+    margin-top:14px;
+  }
+
+  #login-error{
+    color:var(--danger);
+    font-size:13px;
+    margin-top:10px;
+    min-height:18px;
+  }
+
+  @media (max-width:600px){
+    #login-view{
+      width:calc(100% - 28px);
+      margin-top:8vh;
+      padding:28px;
+    }
+  }
+
   #login-view h1{font-size:20px;margin-bottom:4px;}
   #login-view .sub{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);margin-bottom:22px;}
   #login-error{color:var(--danger);font-size:13px;margin-top:6px;min-height:16px;font-family:var(--font-mono);}
@@ -193,13 +257,31 @@
 <body>
 
 <div id="login-view">
-  <h1>Portfolio CMS</h1>
-  <div class="sub">Content Management System</div>
-  <label>Email</label>
-  <input type="email" id="login-email" placeholder="email@vidu.com">
-  <label>Mật khẩu</label>
-  <input type="password" id="login-password">
-  <button id="login-btn" style="width:100%;">Đăng nhập</button>
+  <h1>LÊ ĐẠI THANH LONG</h1>
+  <div class="login-brand">/ PORTFOLIO</div>
+
+  <div class="login-heading">Admin Access</div>
+  <div class="login-description">
+    Content Management System
+  </div>
+
+  <label for="login-email">Email</label>
+  <input
+    type="email"
+    id="login-email"
+    placeholder="email@example.com"
+    autocomplete="email"
+  >
+
+  <label for="login-password">Mật khẩu</label>
+  <input
+    type="password"
+    id="login-password"
+    autocomplete="current-password"
+  >
+
+  <button id="login-btn">Đăng nhập</button>
+
   <div id="login-error"></div>
 </div>
 
