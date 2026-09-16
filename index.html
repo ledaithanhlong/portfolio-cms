@@ -782,8 +782,10 @@
           <div class="hero-avatar" id="hero-avatar">LL</div>
           <div class="hero-identity">
             <div class="hero-meta">
-              <span>$ role --frontend</span>
-              <span class="status-badge" id="hero-status-badge"><span class="status-dot"></span> Available for Internship</span>
+              <span class="status-badge" id="hero-status-badge">
+                <span class="status-dot"></span>
+                <span id="hero-status-text">Available for Internship</span>
+              </span>
             </div>
             <h1 class="hero-title" id="profile-name">Lê Đại Thanh Long</h1>
             <h2 class="hero-subtitle" id="profile-title">Frontend Developer Intern</h2>
@@ -1048,6 +1050,34 @@
         // Ghi chú: bảng `profile` hiện chưa có cột riêng cho "focus" và "status" —
         // hai giá trị này giữ nguyên mặc định tĩnh (không phải dữ liệu bịa, chỉ là
         // chưa có field tương ứng trong Supabase — xem mục PHASE 2 trong báo cáo).
+
+        const availabilityLabels = {
+          available_internship: 'Available for Internship',
+          open: 'Open to Opportunities',
+          available_work: 'Available for Work',
+          freelance: 'Freelance Available',
+          unavailable: 'Not Available'
+        };
+
+        const availability = data.availability_status || 'open';
+        const availabilityLabel =
+          availabilityLabels[availability] || availabilityLabels.open;
+
+        const heroStatusText = document.getElementById('hero-status-text');
+        const heroStatusBadge = document.getElementById('hero-status-badge');
+        const profileStatusText = document.getElementById('profile-status-text');
+
+        if (heroStatusText) {
+          heroStatusText.textContent = availabilityLabel;
+        }
+
+        if (profileStatusText) {
+          profileStatusText.textContent = availabilityLabel;
+        }
+
+        if (heroStatusBadge) {
+          heroStatusBadge.dataset.status = availability;
+        }
 
         if (data.email) {
           const emailDisplay = document.getElementById('contact-email-display');

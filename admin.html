@@ -192,6 +192,78 @@
   .overview-card .label{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;margin-top:4px;}
 
   .helper-box{background:var(--accent-soft);border:1px solid var(--line);border-radius:4px;padding:14px 16px;font-size:13.5px;color:var(--ink);}
+  .availability-box{
+    width:100%;
+    max-width:760px;
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:4px;
+    padding:20px;
+  }
+
+  .availability-label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    margin-bottom:12px;
+  }
+
+  .availability-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .availability-option{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px;
+    border:1px solid var(--line);
+    background:var(--card);
+    cursor:pointer;
+    margin:0;
+  }
+
+  .availability-option:hover{
+    border-color:var(--accent);
+  }
+
+  .availability-option input{
+    width:auto;
+    margin-top:3px;
+    flex:0 0 auto;
+  }
+
+  .availability-option span{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+  .availability-option strong{
+    font-family:var(--font-display);
+    font-size:14px;
+    font-weight:600;
+  }
+
+  .availability-option small{
+    color:var(--ink-soft);
+    font-size:12.5px;
+    line-height:1.5;
+  }
+
+  .availability-option:has(input:checked){
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+
+  @media (max-width:700px){
+    .availability-box{
+      max-width:none;
+    }
+  }
   .profile-form-wrap{
     width:100%;
     max-width:none;
@@ -318,11 +390,86 @@
         <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Số liệu thực tế sẽ kết nối ở Phase 2B — hiện tại đây chỉ là khung giao diện.</p>
       </div>
 
-      <!-- ===================== AVAILABILITY (UI only, Phase 2A) ===================== -->
+      <!-- ===================== AVAILABILITY ===================== -->
       <div class="tab-panel" id="tab-availability">
-        <div class="panel-header"><div><h2>Availability</h2><div class="desc">Trạng thái tìm việc hiển thị ở Hero của portfolio.</div></div></div>
-        <div class="helper-box">
-          Availability management will be implemented in Phase 2B — cần thêm cột <code>availability_status</code> vào bảng <code>profile</code> trên Supabase trước.
+        <div class="panel-header">
+          <div>
+            <h2>Availability</h2>
+            <div class="desc">
+              Trạng thái tìm việc hiển thị trên portfolio.
+            </div>
+          </div>
+        </div>
+
+        <div class="availability-box">
+          <div class="availability-label">TRẠNG THÁI HIỆN TẠI</div>
+
+          <div class="availability-options">
+            <label class="availability-option">
+              <input
+                type="radio"
+                name="availability-status"
+                value="available"
+              >
+              <span>
+                <strong>Available for Internship</strong>
+                <small>Đang tìm kiếm cơ hội thực tập.</small>
+              </span>
+            </label>
+
+            <label class="availability-option">
+              <input
+                type="radio"
+                name="availability-status"
+                value="open"
+              >
+              <span>
+                <strong>Open to Opportunities</strong>
+                <small>Sẵn sàng xem xét các cơ hội phù hợp.</small>
+              </span>
+            </label>
+
+            <label class="availability-option">
+              <input
+                type="radio"
+                name="availability-status"
+                value="available_work"
+              >
+              <span>
+                <strong>Available for Work</strong>
+                <small>Sẵn sàng nhận việc.</small>
+              </span>
+            </label>
+
+            <label class="availability-option">
+              <input
+                type="radio"
+                name="availability-status"
+                value="freelance"
+              >
+              <span>
+                <strong>Freelance Available</strong>
+                <small>Đã có việc nhưng vẫn sẵn sàng nhận thêm dự án freelance.</small>
+              </span>
+            </label>
+
+            <label class="availability-option">
+              <input
+                type="radio"
+                name="availability-status"
+                value="unavailable"
+              >
+              <span>
+                <strong>Not Available</strong>
+                <small>Hiện không tìm kiếm cơ hội mới.</small>
+              </span>
+            </label>
+          </div>
+
+          <div class="save-row">
+            <button id="availability-save">Lưu trạng thái</button>
+            <span class="save-msg" id="availability-msg"></span>
+          </div>
         </div>
       </div>
 
@@ -507,7 +654,13 @@
 
   document.getElementById('logout-btn').onclick = async () => {
     await sb.auth.signOut();
-    location.reload();
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').textContent = '';
+
+    document.getElementById('app-view').style.display = 'none';
+    document.getElementById('login-view').style.display = 'block';
+    // location.reload();
   };
 
   async function checkSession(){
@@ -536,6 +689,7 @@
 
   function loadAllTabs(){
     loadProfile();
+    loadAvailability();
     loadSkills();
     loadProjects();
     loadCertificates();
@@ -591,6 +745,87 @@
       btn.disabled = false;
       btn.textContent = original;
       setTimeout(() => document.getElementById('pf-msg').textContent = '', 3000);
+    }
+  };
+
+  // ---------- Availability ----------
+
+  const AVAILABILITY_VALUES = [
+    'available_internship',
+    'open',
+    'available_work',
+    'freelance',
+    'unavailable'
+  ];
+
+  async function loadAvailability(){
+    try {
+      const { data, error } = await sb
+        .from('profile')
+        .select('availability_status')
+        .eq('id', 1)
+        .single();
+
+      if (error) throw error;
+
+      const status = AVAILABILITY_VALUES.includes(data?.availability_status)
+        ? data.availability_status
+        : 'open';
+
+      const radio = document.querySelector(
+        `input[name="availability-status"][value="${status}"]`
+      );
+
+      if (radio) radio.checked = true;
+
+    } catch (err) {
+      document.getElementById('availability-msg').textContent =
+        'Không thể tải trạng thái.';
+      console.error('Error loading availability:', err);
+    }
+  }
+
+  document.getElementById('availability-save').onclick = async () => {
+    const btn = document.getElementById('availability-save');
+    const msg = document.getElementById('availability-msg');
+
+    const selected = document.querySelector(
+      'input[name="availability-status"]:checked'
+    );
+
+    if (!selected){
+      msg.textContent = 'Chọn một trạng thái.';
+      return;
+    }
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Đang lưu...';
+    msg.textContent = '';
+
+    try {
+      const { error } = await sb
+        .from('profile')
+        .update({
+          availability_status: selected.value
+        })
+        .eq('id', 1);
+
+      if (error) throw error;
+
+      msg.textContent = 'Đã lưu.';
+
+      setTimeout(() => {
+        msg.textContent = '';
+      }, 3000);
+
+    } catch (err) {
+      msg.textContent = 'Lỗi khi lưu: ' + err.message;
+      console.error('Error saving availability:', err);
+
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
   };
 
